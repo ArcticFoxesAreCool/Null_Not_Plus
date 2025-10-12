@@ -1,52 +1,19 @@
 NNP File from path: ./ExampleNNPfiles/testIfOpen.nnp, has been found and opened.
 Line Read: 
 
-Line Read: 
+Line Read: if now no loop me
 
-Line Read: wow this is cool
+   token[0]: 'if'   token[1]: 'now'   token[2]: 'no'   token[3]: 'loop'   token[4]: 'me'
 
-   token[0]: 'wow'   token[1]: 'this'   token[2]: 'is'   token[3]: 'cool'
+Line Read: -> ~-> <- ~<- + ~+ * ~* = ~= > < .
 
-Line Read: yay!
+   token[0]: '->'   token[1]: '~->'   token[2]: '<-'   token[3]: '~<-'   token[4]: '+'   token[5]: '~+'   token[6]: '*'   token[7]: '~*'   token[8]: '='   token[9]: '~='   token[10]: '>'   token[11]: '<'   token[12]: '.'
 
-   token[0]: 'yay!'
+Line Read: 1.1 Inf nan "s t r" "" " " BoolObj NumObj | | True False
 
-Line Read: attempt 1
+   token[0]: '1.1'   token[1]: 'Inf'   token[2]: 'nan'   token[3]: '"s t r"'   token[4]: '""'   token[5]: '" "'   token[6]: 'BoolObj'   token[7]: 'NumObj'   token[8]: '|'   token[9]: '|'   token[10]: 'True'   token[11]: 'False'
 
-   token[0]: 'attempt'   token[1]: '1'
-
-Line Read: testing time here
-
-   token[0]: 'testing'   token[1]: 'time'   token[2]: 'here'
-
-Line Read: 
-
-Line Read: "string here going into a var" -> s
-
-   token[0]: '"string here going into a var"'   token[1]: '->'   token[2]: 's'
-
-Line Read:         adfa;       alkdfla      
-
-   token[0]: 'adfa;'   token[1]: 'alkdfla'
-
-Line Read:     
-
-Line Read: VICTORY test line
-
-   token[0]: 'VICTORY'   token[1]: 'test'   token[2]: 'line'
-
-Line Read: what is the weather in Hopkinton, Massachusetts?
-
-   token[0]: 'what'   token[1]: 'is'   token[2]: 'the'   token[3]: 'weather'   token[4]: 'in'   token[5]: 'Hopkinton,'   token[6]: 'Massachusetts?'
-
-Line Read: Sierra is 7 years old.  Her birthday is September 19th.  
-
-   token[0]: 'Sierra'   token[1]: 'is'   token[2]: '7'   token[3]: 'years'   token[4]: 'old.'   token[5]: 'Her'   token[6]: 'birthday'   token[7]: 'is'   token[8]: 'September'   token[9]: '19th.'
-
-Line Read: Sierra loves to swim. 
-
-   token[0]: 'Sierra'   token[1]: 'loves'   token[2]: 'to'   token[3]: 'swim.'
-
-Line Read: 
+Line Read: var will work? 12va lj3
+   token[0]: 'var'   token[1]: 'will'   token[2]: 'work?'   token[3]: '12va'   token[4]: 'lj3'
 
 NNP File has been closed.

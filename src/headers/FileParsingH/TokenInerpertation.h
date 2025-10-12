@@ -4,9 +4,9 @@
 #include "../DynamicValuesH/ObjArray.h"
 
 
-enum Token_Types_e {VALUE, VARIABLE, KEYWORD, OPERATOR};
+enum Token_Types_e {VARIABLE, VALUE, KEYWORD, OPERATOR};
 
-#define INITIAIL_TOKEN_TYPER_LEN 8
+#define INITIAIL_TOKEN_TYPER_SIZE 8
 
 typedef struct {
     enum Token_Types_e* types;

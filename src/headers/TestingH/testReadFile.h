@@ -8,5 +8,6 @@ void testFile();
 
 void testReader();
 
+void testTokenAnalysis();
 
 #endif

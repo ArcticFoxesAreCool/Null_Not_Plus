@@ -9,8 +9,8 @@ int main(__unused int argc, __unused char** argv){
     initLogging();
 
 
-
-
+    // testReader();
+    testTokenAnalysis();
 
 
 

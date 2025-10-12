@@ -9,7 +9,7 @@ TokenTyper tok_types = {
 
 
 void initTok_types(int initial_size){
-    assert(tok_types.len == 0 && tok_types.types == NULL && initial_size > 0);
+    assert(tok_types.size == 0 && tok_types.types == NULL && initial_size > 0);
     tok_types.size = initial_size;
     tok_types.types = malloc(sizeof(enum Token_Types_e) * initial_size);
     assert(tok_types.types);
@@ -17,7 +17,7 @@ void initTok_types(int initial_size){
 
 
 void freeTok_types(){
-    assert(tok_types && tok_types.size);
+    assert(tok_types.size != 0 && tok_types.size);
     free(tok_types.types);
     tok_types.types = NULL;
 
@@ -27,8 +27,7 @@ void freeTok_types(){
 
 static bool isKeyword(const char* token);
 static bool isOperator(const char* token);
-static Datatype_e isValue(const char* token);
-
+static Datatype_e findValueType(const char* token);
 
 
 void getTok_types(){
@@ -43,7 +42,7 @@ void getTok_types(){
         while (nian.tok_ind_len > tok_types.size){
             tok_types.size *= 2;
         }
-        tok_types.types = realloc(tok_types.size * sizeof(enum Token_Types_e));
+        tok_types.types = realloc(tok_types.types, tok_types.size * sizeof(enum Token_Types_e));
         assert(tok_types.types);
     }
 
@@ -52,7 +51,7 @@ void getTok_types(){
             tok_types.types[i] = KEYWORD;
         } else if (isOperator( nian.charv + nian.token_indexes[i] )){
             tok_types.types[i] = OPERATOR;
-        } else if (isValue( nian.charv + nian.token_indexes[i] )){
+        } else if (findValueType( nian.charv + nian.token_indexes[i] ) != NAO){
             tok_types.types[i] = VALUE;
         } else {
             tok_types.types[i] = VARIABLE;
@@ -90,15 +89,42 @@ static bool isOperator(const char* token){
     return false;
 }
 
-static Datatype_e isValue(const char* token){
-    
+
+static bool isDattype(const char* token);
 
 
+static Datatype_e findValueType(const char* token){
+    // printf("\ttok: %s\n", token);
     if ( fabs( strtod(token, NULL) ) > 2 * __DBL_EPSILON__ || token[0] == '0'){
         return NUM_OBJ;
     } else if (strncmp(token, "True", 5) == 0 || strncmp(token, "False", 6) == 0){
         return BOOL_OBJ;
-    } else if (true){}
+    } else if (isDattype(token)){
+        return DATATYPE_OBJ;
+    } else if (token[0] == '\"'){
+        return STR_OBJ;
+    } else if (strncmp("|", token, 2) == 0){
+        return LIST_OBJ;
+    }
 
     return NAO;
+}
+
+
+
+
+static bool isDattype(const char* token){
+    if (strncmp("BoolObj", token, 8) == 0){
+        return true;
+    } else if (strncmp("DatatypeObj", token, 12) == 0){
+        return true;
+    } else if (strncmp("ListObj", token, 8) == 0){
+        return true;
+    } else if (strncmp("NumObj", token, 7) == 0){
+        return true;
+    } else if (strncmp("StrObj", token, 7) == 0){
+        return true;
+    }
+
+    return false;
 }

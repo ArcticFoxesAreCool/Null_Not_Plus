@@ -140,16 +140,14 @@ void tokenTime(){
 
     bool is_string = false;
 
+    // printf("%s\n", nian.charv + starting_char);
     for(int i = starting_char; i < ln_len; i++){
-
-        if (nian.charv[i] == '\"') is_string = !is_string;
+        // printf("[%d]%c ", i, nian.charv[i]);
+        if (nian.charv[i] == '\"') is_string = !(is_string);
 
         if ( (nian.charv[i] == ' ' || nian.charv[i] == '\t') && !(is_string) ){
-            nian.charv[i++] = '\0';
+            nian.charv[i] = '\0';
 
-            while((nian.charv[i] == ' ' || nian.charv[i] == '\t') && i <= ln_len){
-                i++;
-            }
 
             if (nian.tok_ind_capacity == nian.tok_ind_len){
                 nian.tok_ind_capacity *= 2;
@@ -157,7 +155,8 @@ void tokenTime(){
                 assert(nian.token_indexes);
             }
             // if (nian.token_indexes[nian.tok_ind_len + 1] )
-            if (nian.charv[i] != '\0') nian.token_indexes[nian.tok_ind_len++] = i;
+            // i++;
+            if (nian.charv[i+1] != '\0' && nian.charv[i+1] != ' ' && nian.charv[i+1] != '\t') nian.token_indexes[nian.tok_ind_len++] = i+1;
         }
     }
     // logMessage(FILE_PARSING, "\n");
