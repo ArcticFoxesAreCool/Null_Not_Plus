@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "test.h": "c",
+        "datatypes.h": "c",
+        "string.h": "c",
+        "assert.h": "c",
+        "testmethods.h": "c",
+        "testobjs.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
+}

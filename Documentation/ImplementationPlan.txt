@@ -1,0 +1,131 @@
+
+
+Everything is inside the global Data of type storage
+
+
+Data contains:
+1. void** info, an array of void*s pointing to all of the information
+
+2. nnpStr* identifiers, a dynamic array of nnpStrs containing all variable, class, and function names
+
+3. enum datatypes_e* types, a dynamic array of the datatype of every object
+
+4. uint num_entries
+
+
+nnpStr:
+    unsigned char mode; // pointer or buffer
+    union char* ptr, and char arr[8]
+    if the name is short it will use the buffer, if it is large then it will malloc the data with ptr
+
+
+
+Example of creating variable:
+"5 -> x"
+
+Data.info[ Data.num_entries ] = malloc( NUM_SIZE )
+* (num_obj*)(Data.info[ Data.num_entries ]) = (num_obj){.value = 5.0, .method1 = NUM_METHOD_1, ...};
+make_nnpStr( &(Data.identifiers[ Data.num_entries ]), "x", 1 );
+Data.types[ Data.num_entries ] = NUM;
+Data.num_entries++;
+
+
+
+
+
+objects:
+num_obj:
+    double value;
+    unsigned int functionLevel;
+
+    function pointers... // operator rules, typecasting, etc.
+
+
+str_obj:
+    nnpStr value;
+    unsigned int functionLevel;
+
+    function pointers...
+
+
+bool_obj:
+    bool value;
+    unsigned int functionLevel;
+
+    function pointers...
+
+
+list_obj:
+    storage values;
+    unsigned int functionLevel
+
+    function pointers...
+
+
+datatype_obj:
+    datatypes_e value;
+    unsigned int functionLevel
+
+    function pointers...
+
+
+instance_obj:
+    class_obj* inheritsFrom;
+    void** values;// object pointer array, uses info from inheritsFrom
+    unsigned int functionLevel;
+
+
+
+
+func_obj:
+    fpos_t declarationLoc;
+    uint16_t numArgs;
+    class_obj* classLoc;
+
+class_obj:
+    nnpStr* instanceVars;
+    unsigned int numInstanceVars;
+    func_obj* constructor;
+    func_obj* methods; // operator overloading and typecasting here too
+
+
+
+
+
+
+
+
+Steps:
+1. Reads in a new line
+
+2. from left to right assign datatype and value, keyword or operator into the the array of values used in a given line.
+    If it is a variable grab its value and datatype, if a hardcoded value, then parse that to its defaults
+    Syntax error detection should be included in this step
+
+3. Go through the operators from left to right. Whenever one is encountered get the datatype on the left.
+    If it is a class instance, follow into the inherited class. Go through the functions of the datatype on the left,
+    when the function corresponding to the datatype on the left has been found call it, if the search has been exhausted,
+    cause an error. Find the function arguments from the function information. create an array filled with the values,
+    and datatypes ssimilar to in step 2, for the function call. Continue in step Function Calls:
+
+
+4. If it is a declaration of a new function, create a new func_obj, with with the correct fpos for the function, num args
+    class_obj should be set to null. skip ahead until the next function is over, keeping in mind keywords such as if and
+    loop which require ending with a no.
+
+5. If a class constructor is called, then create a new instance_obj with a pointer to the class, and values being set inside the
+    function constructor. 
+
+6. If a new is class defined create a new class_obj, with the values being found, and then set the constructor to the correct
+    func_obj. Then go through the methods, including an extra num arg, when called, the instance_obj will implicitly supply itself
+    as the first argument passed. When a method is called, it will not copy the first element of data into an array, rather
+    taking the object itself, and adds my as its function name.
+
+7. 
+
+
+Function Calls. increment the functionLevel on all vars that have that variable go through steps, however using
+    a new array during step 2. Whenever a variable is named, only check the list of function arguments and a new array
+    containing the vars in the function. A void pointer initialized to null is to be given in every function call, and
+    whenever a return occurs, set the void pointer to contain a copy of that object, and stop the function. Go back and continue
+    using the void pointer as the returned value, which must be checked if it is null.

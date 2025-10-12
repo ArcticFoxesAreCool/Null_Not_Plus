@@ -1,0 +1,244 @@
+NULL ~ + syntax
+
+file extension: .nnp
+
+
+Basic syntax:
+statements seperated by new lines, spaces inbetween tokens is required
+
+
+
+Variables:
+dynamically typed, assigned and created in the same way
+using the rarrow operater
+
+ex:
+
+5 -> a
+
+a + 1 -> a
+
+"string Time" -> a
+
+
+
+
+comments:
+comments are multiline and inside (), (()) does not work as it comments out the 2nd (, resulting in the program reading a stray )
+
+
+
+
+Order of Operations:
+left to right. Yes that is it
+
+10 + 3 * 0 -> a
+(a is 0)
+
+
+
+
+functions:
+declared where ever. syntax is: functionName <- arg1 arg2 arg3 ...
+a function without arguments is: func <-
+the body starts in the next line and stops with the no keyword
+functions have their own scope
+return statements use the rarrow operater without being followed by a 2nd argument
+you call a function just like declaring with the arguments 
+
+
+add <- a b
+a + b -> c
+c ->
+no
+
+
+(calling function)
+
+add <- 10 3 -> result
+
+
+math:
+addition: a + b
+subtraction: a ~ + b
+multiplication: a * b
+division: a ~ * b
+
+
+boolean:
+is equal to: a = b
+is not equal to: a ~ = b
+greater than: a > b
+less than: a < b
+
+and: a and b
+or: a or b
+not: not a
+
+
+
+conditional:
+syntax:
+if condition (if)
+body
+no if condition2 (else if)
+body2
+no now (else)
+body3
+no (exit if statement)
+
+
+
+if a < b and b > 0
+b -> a
+no if b < a and a > 0
+a -> b
+no now
+0 -> a
+0 -> b
+no
+
+
+
+
+loops:
+there is only while loops, ended with a no statement
+ex:
+
+0 -> a
+loop a ~ = 10
+a + 1 -> a
+
+a -> b
+str ~ -> b
+speak <- b
+no
+
+
+
+classes:
+start with defining a constructor function using ~ <-. Then set the instance vars using the me keyword followed by
+the dot operator then the instance variable name. to create a method use me . followed by a function declartion.
+For operator overloading make a method with the operators rather than a name
+
+className ~ <- constructArg1 onstructArg2
+constructArg1 -> me . instanceVar1
+constructArg2 -> me . instanceVar2
+no (end constructor)
+
+me . methodName <- arg
+methodBody...
+no (end methodName)
+
+me . ~ + <- arg2 (subtraction overloading)
+opertorOverloading ->
+no
+
+no(end class)
+
+
+(creating an instance)
+className <- "abc" 4 -> instanceOfclassName
+instanceOfclassName . methodName <- 4
+instanceOfclassName - 3.9 -> operatorOverloadExample
+
+
+
+
+
+lists:
+val1 val2 val3 -> lst
+(appending)
+lst appending -> lst
+
+1 2 3 -> list           ([1, 2, 3])
+list 5 -> list           (expands to: 1 2 3 5 -> list   (list = [1, 2, 3, 5]))
+list . compress <- 6 -> list      (expands to [1, 2, 3, 5] 6 -> list (list = [[1, 2, 3, 5], 6]))
+
+(add function takes 3 args)
+1 2 3 -> args
+add <- args (add <- [1 2 3]         expands to add <- 1 2 3)
+add <- args 。compress <-  4 5      (add <- [1 2 3], [1 2 3] remains 1 object, add <- [1 2 3] 4 5 (3 arguments type: list, num, num))
+
+(to index a list)
+lst . 0 -> indexZero
+lst . 0.999 = lst . 0 -> thisVarEqualsTrue (index number is truncated)
+
+
+
+
+typecasting:
+to typecast a variable to a datatype
+datatype ~ -> var
+
+1 -> a (a is a number)
+string ~ -> a (a is "1")
+
+
+
+I/O:
+
+
+speak <- aString (this prints out the string, no return type)
+
+5 . toString <- -> str5
+speak <- str5 (How to print a non-string variable)
+
+(speak <- 5 . toString <-)
+(this would not work because the speak takes in 5, which is not a string, and then toString is called on the non-existant toString return) 
+
+
+to get userinput, the hear function can be called, which returns a string from stdin
+hear <- -> userString
+
+
+
+selfdestruct <-
+(exits program)
+
+
+
+runs the .nnp file, filling memory with all of its vars, functions, and classes
+octothorp import library.nnp
+
+
+
+
+
+
+BASIC DATATYPES:
+
+num:
+stores a positive or negative number with a decimal
+methods:
+
+number . getType <- (returns datatype with the value of num)
+number . toString <- (returns a the number represented with ascii chars, ex: 5 . toString <- returns "5.0")
+
+
+str:
+stores a series of characters
+string . getType <- (returns datatype with the value of str)
+string . getLength <- (returns a num with the number of characters stored in string)
+
+bool
+stores a True or False
+boolean . getType <- (returns datatype with the value of bool)
+boolean . toString <- (returns the string "True" or "False", ex: True . toString <- returns "True")
+
+
+
+list
+
+
+
+datatype
+data . getType <- (returns datatype of type datatype)
+data . toString <- (returns a string version of the datatype)
+
+
+function
+func . getNumArgs <- (returns num of the number of arguments accepted)
+ (maybe)func . isMethod <- (returns bool of if it is a meth)
+func . toString <- (returns a string of the function name)
+func . getType <- (returns a datatype of value function)
