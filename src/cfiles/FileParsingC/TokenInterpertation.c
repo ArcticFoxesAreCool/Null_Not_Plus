@@ -27,7 +27,7 @@ void freeTok_types(){
 
 static bool isKeyword(const char* token);
 static bool isOperator(const char* token);
-static Datatype_e findValueType(const char* token);
+
 
 
 void getTok_types(){
@@ -46,15 +46,22 @@ void getTok_types(){
         assert(tok_types.types);
     }
 
+    logMessage(FILE_PARSING, "Begin Tokenization Type Detetction\n");
+
     for (int i = 0; i < nian.tok_ind_len; i++){
+        logMessage(FILE_PARSING, "Token[%d]: %d\n", i, nian.charv + nian.token_indexes[i]);
         if (isKeyword( nian.charv + nian.token_indexes[i] )){
             tok_types.types[i] = KEYWORD;
+            logMessage(FILE_PARSING, "\tKeyword\n");
         } else if (isOperator( nian.charv + nian.token_indexes[i] )){
             tok_types.types[i] = OPERATOR;
+            logMessage(FILE_PARSING, "\tOperator\n");
         } else if (findValueType( nian.charv + nian.token_indexes[i] ) != NAO){
             tok_types.types[i] = VALUE;
+            logMessage(FILE_PARSING, "\tValue\n");
         } else {
             tok_types.types[i] = VARIABLE;
+            logMessage(FILE_PARSING, "\tVariable\n");
         }
     }
 }
@@ -93,7 +100,7 @@ static bool isOperator(const char* token){
 static bool isDattype(const char* token);
 
 
-static Datatype_e findValueType(const char* token){
+Datatype_e findValueType(const char* token){
     // printf("\ttok: %s\n", token);
     if ( fabs( strtod(token, NULL) ) > 2 * __DBL_EPSILON__ || token[0] == '0'){
         return NUM_OBJ;
@@ -103,7 +110,7 @@ static Datatype_e findValueType(const char* token){
         return DATATYPE_OBJ;
     } else if (token[0] == '\"'){
         return STR_OBJ;
-    } else if (strncmp("|", token, 2) == 0){
+    } else if (strncmp("[", token, 2) == 0 || strncmp("]", token, 2) == 0){
         return LIST_OBJ;
     }
 

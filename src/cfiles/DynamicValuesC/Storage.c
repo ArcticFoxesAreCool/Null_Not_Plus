@@ -10,7 +10,8 @@ object_p getFromStorage(const Storage* p_store, const NnpStr* name){
             return p_store->objs[i];
         }
     }
-    assert(false && "get from storage name not found");
+    return NULL;
+    // assert(false && "get from storage name not found");
 }
 
 void appendStorage(Storage* p_store, const object_p obj, const NnpStr* name){

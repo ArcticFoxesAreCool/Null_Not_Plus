@@ -5,7 +5,8 @@
         "string.h": "c",
         "assert.h": "c",
         "testmethods.h": "c",
-        "testobjs.h": "c"
+        "testobjs.h": "c",
+        "datatypeenum.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

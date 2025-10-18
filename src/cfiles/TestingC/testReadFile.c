@@ -65,6 +65,7 @@ void testTokenAnalysis(){
     initTok_types(INITIAIL_TOKEN_TYPER_SIZE);
 
     openFile("./ExampleNNPfiles/testIfOpen.nnp");
+    // openFile("./ExampleNNPfiles/testE.nnp");
 
 
     for(int i = 1; readLine(); i++){

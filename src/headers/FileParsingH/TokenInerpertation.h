@@ -2,6 +2,7 @@
 #define TOKENINTERPERTATION_H
 
 #include "../DynamicValuesH/ObjArray.h"
+#include "../ObjectsH/DatatypeEnum.h"
 
 
 enum Token_Types_e {VARIABLE, VALUE, KEYWORD, OPERATOR};
@@ -18,6 +19,9 @@ void initTok_types(int initial_size);
 void freeTok_types();
 
 void getTok_types();
+
+Datatype_e findValueType(const char* token);
+
 
 // void getAllObjs
 
