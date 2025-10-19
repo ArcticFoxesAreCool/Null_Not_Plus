@@ -163,6 +163,7 @@ void tokenTime(){
     for (int i = 0; i < nian.tok_ind_len; i++){
         logMessage(FILE_PARSING, "   token[%d]: '%s'", i, nian.charv + nian.token_indexes[i]);
     }
+    logMessage(FILE_PARSING, "\n");
     // logMessage(FILE_PARSING, "\n\n");
 }
 

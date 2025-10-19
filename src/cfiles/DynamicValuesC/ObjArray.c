@@ -190,7 +190,7 @@ void freeObjArrayEntries(ObjArray* p_obj_arr){
         freeObj(  p_obj_arr->objs[i]  );
         p_obj_arr->objs[i] = NULL;
     }
-    // free(p_obj_arr);
+    // free(p_obj_arr->objs);
 }
 
 

@@ -49,7 +49,7 @@ void getTok_types(){
     logMessage(FILE_PARSING, "Begin Tokenization Type Detetction\n");
 
     for (int i = 0; i < nian.tok_ind_len; i++){
-        logMessage(FILE_PARSING, "Token[%d]: %d\n", i, nian.charv + nian.token_indexes[i]);
+        logMessage(FILE_PARSING, "Token[%d]: '%s'\n", i, nian.charv + nian.token_indexes[i]);
         if (isKeyword( nian.charv + nian.token_indexes[i] )){
             tok_types.types[i] = KEYWORD;
             logMessage(FILE_PARSING, "\tKeyword\n");

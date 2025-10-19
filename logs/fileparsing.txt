@@ -1,0 +1,10 @@
+NNP File from path: ./ExampleNNPfiles/testCondense.nnp, has been found and opened.
+Line Read: inf * "a"
+   token[0]: 'inf'   token[1]: '*'   token[2]: '"a"'
+Begin Tokenization Type Detetction
+Token[0]: 'inf'
+	Value
+Token[1]: '*'
+	Operator
+Token[2]: '"a"'
+	Value

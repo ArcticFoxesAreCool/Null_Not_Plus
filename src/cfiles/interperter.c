@@ -1,7 +1,7 @@
 #include "../headers/datatypes.h"
 
 
-#include "../headers/TestingH/testReadFile.h"
+#include "../headers/TestingH/testExecution.h"
 
 
 int main(__unused int argc, __unused char** argv){
@@ -10,7 +10,7 @@ int main(__unused int argc, __unused char** argv){
 
 
     // testReader();
-    testTokenAnalysis();
+    executionTest();
 
 
 

@@ -1,0 +1,11 @@
+start con NumObj: inf
+finish con NumObj: inf
+start con StrObj: a
+finish con StrObj: a
+start con NumObj: inf
+finish con NumObj: inf
+start con StrObj: a
+finish con StrObj: a
+start con StrObj: a
+finish con StrObj: a
+start mult NumObj to StrObj (a)

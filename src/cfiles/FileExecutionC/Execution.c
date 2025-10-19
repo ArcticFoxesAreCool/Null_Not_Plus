@@ -84,6 +84,7 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
                 addValVarToTempStack(&temp_stack, temp_stack_types, i);
                 operationResolution(&temp_stack, i);
 
+
             } else {
                 logMessage(FILE_PARSING, "invalid operator syntax\n");
                 puts("Invalid syntax");
@@ -93,10 +94,16 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
        
     }
 
-
+    printf("TEMPORTY CODE HERE\n"); fflush(stdout);
+    char val_to_str[512];
+    for(uint i = 0; i < temp_stack.length; i++){
+        objValtoStr(val_to_str, temp_stack.objs[i]);
+        printf("\t%s\n", val_to_str);
+    }
 
     freeObjArrayEntries(&temp_stack);
     free(temp_stack.objs);
+
 }
 
 
@@ -114,11 +121,15 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
 
 
     if (tok_types.types[index] == VALUE){
+
         datatype_arr[p_temp_stack->length] = findValueType(nian.charv + nian.token_indexes[index]);
         object_p obj = constructFromValue(index);
         assert(obj);
         appendInObjArray(p_temp_stack, obj);
+
     } else if (tok_types.types[index] == VARIABLE){
+        printf("DEBUG: %d\n", index);
+
         NnpStr tmp_str;
         setNnpStr(nian.charv + nian.token_indexes[index], &tmp_str);
         object_p obj = getFromStorage(&big_storage, &tmp_str);
@@ -134,11 +145,11 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
 }
 
 static OperatorsStruct* getObjOperators(object_p obj){
-    return (OperatorsStruct*)(((Datatype_e*)obj) + 1);
+    return ((NumObj*)obj)->operators;
 }
 
 static BuiltMethodsStruct* getObjMethods(object_p obj){
-    return (BuiltMethodsStruct*)(((OperatorsStruct*)(((Datatype_e*)obj) + 1)) + 1);
+    return ((NumObj*)obj)->methods;
 }
 
 static void applyOperation(ObjArray* p_temp_stack, object_p resolved_obj){
@@ -164,6 +175,7 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
         && (tok_types.types[op2_tok_ind] == VALUE || tok_types.types[op2_tok_ind] == VARIABLE)
     );
 
+
     object_p op1 = p_temp_stack->objs[p_temp_stack->length - 2];
     object_p op2 = p_temp_stack->objs[p_temp_stack->length - 1];
 
@@ -172,30 +184,33 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
 // NUM_OBJ, BOOL_OBJ, STR_OBJ, LIST_OBJ, DATATYPE_OBJ, INSTANCE_OBJ, FUNC_OBJ, CLASS_OBJ, NAO
 
 // casting: val ~-> datatype
+
+
+
     if (strncmp(operator_str, "~->", 4) == 0){
         if (op2_type != DATATYPE_OBJ) {logMessage(FILE_PARSING, "invalid cast syntax\n");exit(1);}
         object_p resolved_obj;
         switch (((DatatypeObj*)op2)->value){
-        case NUM_OBJ:
+        case NUM_OBJ:{
             if (getObjOperators(op1)->_cast_num == NULL) {logMessage(FILE_PARSING, "invalid cast typing\n");exit(1);}
             resolved_obj = getObjOperators(op1)->_cast_num(op1);
-            break;
-        case BOOL_OBJ:
+            break;}
+        case BOOL_OBJ:{
             if (getObjOperators(op1)->_cast_bool == NULL) {logMessage(FILE_PARSING, "invalid cast typing\n");exit(1);}
             resolved_obj = getObjOperators(op1)->_cast_bool(op1);
-            break;
-        case STR_OBJ:
+            break;}
+        case STR_OBJ:{
             if (getObjOperators(op1)->_cast_str == NULL) {logMessage(FILE_PARSING, "invalid cast typing\n");exit(1);}
             resolved_obj = getObjOperators(op1)->_cast_str(op1);
-            break;
-        case LIST_OBJ:
+            break;}
+        case LIST_OBJ:{
             if (getObjOperators(op1)->_cast_list == NULL) {logMessage(FILE_PARSING, "invalid cast typing\n");exit(1);}
             resolved_obj = getObjOperators(op1)->_cast_list(op1);
-            break;
-        case DATATYPE_OBJ:
+            break;}
+        case DATATYPE_OBJ:{
             if (getObjOperators(op1)->_cast_datatype == NULL) {logMessage(FILE_PARSING, "invalid cast typing\n");exit(1);}
             resolved_obj = getObjOperators(op1)->_cast_datatype(op1);
-            break;
+            break;}
         
         default:
             logMessage(FILE_PARSING, "unfound op2 cast type\n");
@@ -205,12 +220,21 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
         applyOperation(p_temp_stack, resolved_obj);
 
     } else if (strncmp(operator_str, "+", 2) == 0){
+
         switch(op2_type){
         case NUM_OBJ:{
             if (getObjOperators(op1)->_add_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+
+            
+            // puts("A");fflush(stdout);
+            // object_p resolved_obj = ((NumObj*)op1)->operators->_add_num(op1, (NumObj*)op2);
             object_p resolved_obj = getObjOperators(op1)->_add_num(op1, (NumObj*)op2);
+            // printf("%p, %p\n", op1, ((NumObj*)op1)->operators);
+            // puts("B");fflush(stdout);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
+
+            
             break;}
         case BOOL_OBJ:{
             if (getObjOperators(op1)->_add_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
@@ -516,7 +540,6 @@ object_p constructFromValue(int tok_index){
 
     puts("must handle lists");
 
-
     extern Reader nian;
     extern TokenTyper tok_types;
 
@@ -571,6 +594,7 @@ object_p constructFromValue(int tok_index){
         logMessage(FILE_PARSING, "Attempted to construct from an invalid value\n");
         exit(1);
     }
+
 }
 // if ( fabs( strtod(token, NULL) ) > 2 * __DBL_EPSILON__ || token[0] == '0'){
 //         return NUM_OBJ;
