@@ -67,13 +67,17 @@ void freeObj(object_p this_obj){
             free(this_obj);
             break;
         case LIST_OBJ:
+            // printf("A\n");fflush(stdout);
+            
             for(uint i = 0; i < ((ListObj*)this_obj)->values.length; i++){
                 // objValtoStr(testing_printer, ((ListObj*)this_obj)->values.objs[i] );
                 // printf("List[%u]:\t%s\n\t", i, testing_printer);
-
+                // printf("WHY %d\n", i);fflush(stdout);
                 freeObj(  ((ListObj*)this_obj)->values.objs[i]  );
             }
             // putchar('\n');
+            // printf("B\n");fflush(stdout);
+
             free(((ListObj*)this_obj)->values.objs);
             free(this_obj);
             break;

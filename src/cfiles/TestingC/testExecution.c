@@ -21,24 +21,14 @@ void executionTest(){
     putchar('\n');
 
 
-    object_p val1 = constructFromValue(0), val2 = constructFromValue(2);
-    // char val_to_str[OBJ_PRINTING_CHAR_SIZE];
-    // objValtoStr(val_to_str, val1); puts(val_to_str);
-    // objValtoStr(val_to_str, val2); puts(val_to_str);
 
     {
-        ObjArray useless = {.capacity = 0,.length = 0,.objs = 0};
-
+        ObjArray useless = {.capacity = 0,.length = 0,.objs = NULL};
         condenseObjsAndOperators(&useless);
-        free(useless.objs);
+        
     }
 
 
-
-
-
-    freeObj(val1); val1 = NULL;
-    freeObj(val2); val2 = NULL;
 
 
     closeFile();

@@ -114,6 +114,15 @@ str ~ -> b
 speak <- b
 no
 
+break statements are done like this.
+loop True
+loop ->
+no
+
+Conitnue are done similarly
+loop True
+loop <-
+no
 
 
 classes:

@@ -39,11 +39,124 @@ void deepFreeBigStorage(){
 
 
 
+// static void generateListFromBrackets(ListObj* dst, ObjArray* p_temp_stack, int lbracket_index, int rbracket_index);
 
 
 
 static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int index);
 static void operationResolution(ObjArray* p_temp_stack, int final_index);
+
+
+
+
+
+static int getListClosingIndex(int open_bracket_index){
+    assert(open_bracket_index >= 0);
+
+    extern Reader nian; extern TokenTyper tok_types;
+
+    assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes && nian.tok_ind_len > open_bracket_index);
+    assert(tok_types.size > 0 && tok_types.types);
+
+    int bracket_nest = 1;
+    for(int i = open_bracket_index + 1; i < nian.tok_ind_len; i++){
+        if (strncmp(nian.charv + nian.token_indexes[i], "]", 2) == 0){
+            bracket_nest--;
+        } else if (strncmp(nian.charv + nian.token_indexes[i], "[", 2) == 0){
+            bracket_nest++;
+        }
+
+        if (bracket_nest == 0) {
+            return i;
+        }
+    }
+
+    logMessage(FILE_PARSING, "\nList opening bracket, token[%d]: '%s', is not closed in the same line\n", open_bracket_index, nian.charv+nian.token_indexes[open_bracket_index]);
+    exit(1);
+}
+
+
+
+
+
+
+
+
+
+static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
+    // only start and stop on value/variables
+
+    assert(start_index >= 0 && stop_index >= 0 && stop_index >= start_index);
+    assert(p_temp_stack && p_temp_stack->objs != NULL && p_temp_stack->capacity > 0);
+    // assert(datatype_arr);
+
+    extern Reader nian; extern TokenTyper tok_types;
+
+    assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes && nian.tok_ind_len > stop_index);
+    assert(tok_types.size > 0 && tok_types.types);
+
+
+    // const char* curr_tok;
+    int list_closed_at;
+
+    for(int i = start_index; i <= stop_index; i++){
+        // curr_tok = nian.charv + nian.token_indexes[i];
+
+
+        if (tok_types.types[i] == VALUE || tok_types.types[i] == VARIABLE){
+            
+            if (tok_types.types[i] == VALUE && strncmp("[", nian.charv + nian.token_indexes[i], 2) == 0){
+
+                ObjArray temp = {.capacity = DEFAULT_OBJ_ARRAY_CAPACITY, .length = 0, .objs = NULL};
+                ListObj* empty_list = constructListObj(&temp);
+                appendInObjArray(p_temp_stack, empty_list);
+                freeObj(empty_list);
+
+
+                list_closed_at = getListClosingIndex(i);
+                if (list_closed_at == i + 1){
+                    i++; 
+                    continue;
+                }
+
+                ListObj* added_list = p_temp_stack->objs[p_temp_stack->length - 1];
+                subCondenseObjsOperators(&(added_list->values), NULL, i + 1, getListClosingIndex(i) - 1);
+                i = list_closed_at;
+                continue;
+            }
+
+
+
+            addValVarToTempStack(p_temp_stack, datatype_arr, i);
+            
+        } else if (tok_types.types[i] == OPERATOR){
+            if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
+                i++;
+
+                addValVarToTempStack(p_temp_stack, datatype_arr, i);
+                // if (strncmp(nian.charv + nian.token_indexes[i], "]", 2) == 0) continue;
+
+                operationResolution(p_temp_stack, i);
+
+
+            } else {
+                logMessage(FILE_PARSING, "invalid operator syntax\n");
+                puts("Invalid syntax");
+                exit(1);
+            }
+        }
+        
+    }
+
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -70,36 +183,22 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
     Datatype_e temp_stack_types[nian.tok_ind_len];
 
 
-    for (int i = 0; i < nian.tok_ind_len; i++){
-        if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0) break;
-        
-        if (tok_types.types[i] == VALUE || tok_types.types[i] == VARIABLE){
-            
-            addValVarToTempStack(&temp_stack, temp_stack_types, i);
-            
-        } else if (tok_types.types[i] == OPERATOR){
-            if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
-                i++;
 
-                addValVarToTempStack(&temp_stack, temp_stack_types, i);
-                operationResolution(&temp_stack, i);
+    subCondenseObjsOperators(&temp_stack, temp_stack_types, 0, nian.tok_ind_len - 1);
 
 
-            } else {
-                logMessage(FILE_PARSING, "invalid operator syntax\n");
-                puts("Invalid syntax");
-                exit(1);
-            }
-        }
-       
-    }
-
-    printf("TEMPORTY CODE HERE\n"); fflush(stdout);
-    char val_to_str[512];
-    for(uint i = 0; i < temp_stack.length; i++){
-        objValtoStr(val_to_str, temp_stack.objs[i]);
-        printf("\t%s\n", val_to_str);
-    }
+    char s[OBJ_PRINTING_CHAR_SIZE];
+    // for (uint i = 0; i < temp_stack.length; i++){
+    //     objValtoStr(s, temp_stack.objs[i]);
+    //     puts(s);
+    // }
+    // ListObj* lst_obj = temp_stack.objs[0];
+    // for(uint i = 0; i < lst_obj->values.length; i++){
+    //     objValtoStr(s, lst_obj->values.objs[i]);
+    //     puts(s);
+    // }
+    objValtoStr(s, temp_stack.objs[0]);
+    puts(s);
 
     freeObjArrayEntries(&temp_stack);
     free(temp_stack.objs);
@@ -111,8 +210,99 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// void condenseObjsAndOperators(ObjArray* p_empty_objarr){
+//     assert(p_empty_objarr && p_empty_objarr->objs == NULL && p_empty_objarr->capacity == 0 && p_empty_objarr->length == 0);
+
+//     extern Reader nian;
+//     extern TokenTyper tok_types;
+
+//     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes);
+//     assert(tok_types.size > 0 && tok_types.types);
+    
+//     if (nian.tok_ind_len == 0) return;
+
+//     ObjArray temp_stack = {
+//         .capacity = nian.tok_ind_len,
+//         .length = 0,
+//         .objs = malloc(sizeof(object_p) * nian.tok_ind_len)
+//     };
+//     assert(temp_stack.objs);
+
+
+//     Datatype_e temp_stack_types[nian.tok_ind_len];
+
+
+//     for (int i = 0; i < nian.tok_ind_len; i++){
+//         if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0) break;
+        
+//         if (tok_types.types[i] == VALUE || tok_types.types[i] == VARIABLE){
+            
+//             addValVarToTempStack(&temp_stack, temp_stack_types, i);
+            
+//         } else if (tok_types.types[i] == OPERATOR){
+//             if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
+//                 i++;
+
+//                 addValVarToTempStack(&temp_stack, temp_stack_types, i);
+//                 // if (strncmp(nian.charv + nian.token_indexes[i], "]", 2) == 0) continue;
+
+//                 operationResolution(&temp_stack, i);
+
+
+//             } else {
+//                 logMessage(FILE_PARSING, "invalid operator syntax\n");
+//                 puts("Invalid syntax");
+//                 exit(1);
+//             }
+//         }
+       
+//     }
+
+
+//     freeObjArrayEntries(&temp_stack);
+//     free(temp_stack.objs);
+
+// }
+
+
+
+
+
+
 static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int index){
-    assert(p_temp_stack && datatype_arr);
+    assert(p_temp_stack);
+    // assert(p_temp_stack && datatype_arr);
     extern Reader nian;    extern TokenTyper tok_types;
     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes);
     assert(tok_types.size > 0 && tok_types.types);
@@ -122,11 +312,31 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
 
     if (tok_types.types[index] == VALUE){
 
-        datatype_arr[p_temp_stack->length] = findValueType(nian.charv + nian.token_indexes[index]);
+        if (datatype_arr){
+            datatype_arr[p_temp_stack->length] = findValueType(nian.charv + nian.token_indexes[index]);
+        }
+
         object_p obj = constructFromValue(index);
+
+        // if (obj == NULL && datatype_arr[p_temp_stack->length] == LIST_OBJ){
+        //     for (int openbrack = p_temp_stack->length - 1; openbrack >= 0; openbrack--){
+
+        //         if (*((Datatype_e*)(p_temp_stack->objs[openbrack])) == LIST_OBJ){
+        //             if (((ListObj*)(p_temp_stack->objs[openbrack]))->values.capacity == DEFAULT_OBJ_ARRAY_CAPACITY + 1 && ((ListObj*)(p_temp_stack->objs[openbrack]))->values.length == 0){
+        //                 ((ListObj*)(p_temp_stack->objs[openbrack]))->values.objs = realloc(((ListObj*)(p_temp_stack->objs[openbrack]))->values.objs, DEFAULT_OBJ_ARRAY_CAPACITY * 2);
+        //                 assert(((ListObj*)(p_temp_stack->objs[openbrack]))->values.objs);
+        //                 ((ListObj*)(p_temp_stack->objs[openbrack]))->values.capacity = 2 * DEFAULT_OBJ_ARRAY_CAPACITY;
+        //                 generateListFromBrackets((ListObj*)(p_temp_stack->objs[openbrack]), p_temp_stack, openbrack, index);
+        //                 return;
+        //             }
+        //         }
+
+        //     }
+        // }
+
         assert(obj);
         appendInObjArray(p_temp_stack, obj);
-
+        
     } else if (tok_types.types[index] == VARIABLE){
         printf("DEBUG: %d\n", index);
 
@@ -134,7 +344,11 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
         setNnpStr(nian.charv + nian.token_indexes[index], &tmp_str);
         object_p obj = getFromStorage(&big_storage, &tmp_str);
         assert(obj && "unidentified variable");
-        datatype_arr[p_temp_stack->length] = *((Datatype_e*)obj);
+
+        if (datatype_arr){
+            datatype_arr[p_temp_stack->length] = *((Datatype_e*)obj);
+        }
+
         appendInObjArray(p_temp_stack, obj);
         freeNnpStr(&tmp_str);
     } else {
@@ -226,11 +440,7 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
             if (getObjOperators(op1)->_add_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
 
             
-            // puts("A");fflush(stdout);
-            // object_p resolved_obj = ((NumObj*)op1)->operators->_add_num(op1, (NumObj*)op2);
             object_p resolved_obj = getObjOperators(op1)->_add_num(op1, (NumObj*)op2);
-            // printf("%p, %p\n", op1, ((NumObj*)op1)->operators);
-            // puts("B");fflush(stdout);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
 
@@ -267,31 +477,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, "~+", 3) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_sub_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_sub_num == NULL) {logMessage(FILE_PARSING, "invalid ~+ operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_sub_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_sub_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_sub_bool == NULL) {logMessage(FILE_PARSING, "invalid ~+ operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_sub_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_sub_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_sub_str == NULL) {logMessage(FILE_PARSING, "invalid ~+ operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_sub_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_sub_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_sub_list == NULL) {logMessage(FILE_PARSING, "invalid ~+ operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_sub_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_sub_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_sub_datatype == NULL) {logMessage(FILE_PARSING, "invalid ~+ operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_sub_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -304,31 +514,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, "*", 2) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_mult_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_mult_num == NULL) {logMessage(FILE_PARSING, "invalid * operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_mult_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_mult_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_mult_bool == NULL) {logMessage(FILE_PARSING, "invalid * operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_mult_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_mult_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_mult_str == NULL) {logMessage(FILE_PARSING, "invalid * operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_mult_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_mult_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_mult_list == NULL) {logMessage(FILE_PARSING, "invalid * operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_mult_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_mult_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_mult_datatype == NULL) {logMessage(FILE_PARSING, "invalid * operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_mult_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -341,31 +551,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, "~*", 3) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_div_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_div_num == NULL) {logMessage(FILE_PARSING, "invalid ~* operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_div_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_div_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_div_bool == NULL) {logMessage(FILE_PARSING, "invalid ~* operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_div_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_div_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_div_str == NULL) {logMessage(FILE_PARSING, "invalid ~* operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_div_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_div_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_div_list == NULL) {logMessage(FILE_PARSING, "invalid ~* operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_div_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_div_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_div_datatype == NULL) {logMessage(FILE_PARSING, "invalid ~* operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_div_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -378,31 +588,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, "=", 2) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_eq_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_eq_num == NULL) {logMessage(FILE_PARSING, "invalid = operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_eq_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_eq_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_eq_bool == NULL) {logMessage(FILE_PARSING, "invalid = operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_eq_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_eq_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_eq_str == NULL) {logMessage(FILE_PARSING, "invalid = operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_eq_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_eq_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_eq_list == NULL) {logMessage(FILE_PARSING, "invalid = operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_eq_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_eq_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_eq_datatype == NULL) {logMessage(FILE_PARSING, "invalid = operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_eq_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -415,31 +625,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, "~=", 3) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_noteq_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_noteq_num == NULL) {logMessage(FILE_PARSING, "invalid ~= operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_noteq_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_noteq_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_noteq_bool == NULL) {logMessage(FILE_PARSING, "invalid ~= operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_noteq_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_noteq_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_noteq_str == NULL) {logMessage(FILE_PARSING, "invalid ~= operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_noteq_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_noteq_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_noteq_list == NULL) {logMessage(FILE_PARSING, "invalid ~= operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_noteq_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_noteq_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_noteq_datatype == NULL) {logMessage(FILE_PARSING, "invalid ~= operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_noteq_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -452,31 +662,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, ">", 2) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_greaterthan_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_greaterthan_num == NULL) {logMessage(FILE_PARSING, "invalid > operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_greaterthan_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_greaterthan_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_greaterthan_bool == NULL) {logMessage(FILE_PARSING, "invalid > operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_greaterthan_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_greaterthan_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_greaterthan_str == NULL) {logMessage(FILE_PARSING, "invalid > operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_greaterthan_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_greaterthan_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_greaterthan_list == NULL) {logMessage(FILE_PARSING, "invalid > operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_greaterthan_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_greaterthan_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_greaterthan_datatype == NULL) {logMessage(FILE_PARSING, "invalid > operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_greaterthan_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -489,31 +699,31 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     } else if (strncmp(operator_str, "<", 2) == 0){
         switch(op2_type){
         case NUM_OBJ:{
-            if (getObjOperators(op1)->_lessthan_num == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_lessthan_num == NULL) {logMessage(FILE_PARSING, "invalid < operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_lessthan_num(op1, (NumObj*)op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case BOOL_OBJ:{
-            if (getObjOperators(op1)->_lessthan_bool == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_lessthan_bool == NULL) {logMessage(FILE_PARSING, "invalid < operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_lessthan_bool(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case STR_OBJ:{
-            if (getObjOperators(op1)->_lessthan_str == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_lessthan_str == NULL) {logMessage(FILE_PARSING, "invalid < operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_lessthan_str(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case LIST_OBJ:{
-            if (getObjOperators(op1)->_lessthan_list == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_lessthan_list == NULL) {logMessage(FILE_PARSING, "invalid < operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_lessthan_list(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
             break;}
         case DATATYPE_OBJ:{
-            if (getObjOperators(op1)->_lessthan_datatype == NULL) {logMessage(FILE_PARSING, "invalid + operation\n");exit(1);}
+            if (getObjOperators(op1)->_lessthan_datatype == NULL) {logMessage(FILE_PARSING, "invalid < operation\n");exit(1);}
             object_p resolved_obj = getObjOperators(op1)->_lessthan_datatype(op1, op2);
             assert(resolved_obj);
             applyOperation(p_temp_stack, resolved_obj);
@@ -538,7 +748,6 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
 
 object_p constructFromValue(int tok_index){
 
-    puts("must handle lists");
 
     extern Reader nian;
     extern TokenTyper tok_types;
@@ -590,12 +799,130 @@ object_p constructFromValue(int tok_index){
             freeNnpStr(&tmp_str);
         }
         return ret;}
+    // case LIST_OBJ:{
+    //     if (strncmp(tok, "]", 2) == 0) return NULL;
+    //     ObjArray empty = {.capacity = DEFAULT_OBJ_ARRAY_CAPACITY + 1, .length = 0, .objs = NULL};
+    //     return constructListObj(&empty);}
     default:
         logMessage(FILE_PARSING, "Attempted to construct from an invalid value\n");
         exit(1);
     }
 
 }
+
+
+
+
+// static void generateListFromBrackets(ListObj* dst, ObjArray* p_temp_stack, int lbracket_index, int rbracket_index){
+//     // printf("L: %d, R: %d, len: %u\n", lbracket_index, rbracket_index, p_temp_stack->length);
+//     assert(dst && dst->values.objs && dst->values.length == 0 && dst->values.capacity > 0);
+//     assert(p_temp_stack && p_temp_stack->objs && p_temp_stack->capacity >= p_temp_stack->length && p_temp_stack->length >= 2);
+//     assert(lbracket_index < rbracket_index && lbracket_index >= 0 && rbracket_index <= (int)p_temp_stack->length);
+
+//     ObjArray* dst_obj_arr_p = &(dst->values);
+//     Datatype_e curr_obj_type = NAO;
+
+//     int curr_rbracket = rbracket_index;
+//     const int index = lbracket_index + 1;
+
+
+
+//     while (index < curr_rbracket){
+//         if (p_temp_stack->objs[index] == NULL){puts("unexpected NULL in line-reading obj array");exit(1);}
+
+        
+//         curr_obj_type = *((Datatype_e*)(p_temp_stack->objs[index]));
+
+//         if (curr_obj_type != LIST_OBJ){
+//             appendInObjArray(dst_obj_arr_p, p_temp_stack->objs[index]);
+//             popInObjArray(p_temp_stack, index);
+//             curr_rbracket--;
+//             continue;
+//         } 
+
+//         puts("This is bad...");
+//         exit(1);
+//     }
+//     // popInObjArray(p_temp_stack, index);
+
+// }
+
+
+
+
+
+
+
+// // sublist found
+// int lis_level = 1;
+// ObjArray empty = {.capacity = DEFAULT_OBJ_ARRAY_CAPACITY, .length = 0, .objs = NULL};
+// ListObj* sublist = constructListObj(&empty);
+
+// for (int i = index + 1; i < curr_rbracket; i++){
+//     if (p_temp_stack->objs[i] == NULL){
+//         lis_level--;
+//     } else if (*((Datatype_e*)(p_temp_stack->objs[i])) == LIST_OBJ){
+//         lis_level++;
+//     }
+
+//     if (lis_level == 0){
+//         generateListFromBrackets(sublist, p_temp_stack, index, i);
+//         curr_rbracket = curr_rbracket - (i - index) - 1;
+//         break;
+//     }
+// }
+// popInObjArray(p_temp_stack, index);
+
+
+// appendInObjArray(dst_obj_arr_p, sublist);
+// freeObj(sublist);
+
+
+
+
+
+
+
+
+
+
+// void fillLists(ObjArray* p_temp_stack, Datatype_e* datatype_arr){
+//     // assert(p_temp_stack && p_temp_stack->objs &&  p_temp_stack->capacity >= 1);
+//     // extern Reader nian;    extern TokenTyper tok_types;
+//     // assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity >= nian.tok_ind_len && nian.token_indexes);
+//     // assert(tok_types.size >= 2 && tok_types.types);
+
+//     if (p_temp_stack->length == 0) return;
+
+//     int list_level = 0;
+
+//     for(uint i = 0; i < p_temp_stack->length; i++){
+//         if (datatype_arr[i] != LIST_OBJ) continue;
+
+//         if (p_temp_stack->objs[i] == NULL){puts("invalid ListObj ending token"); exit(1);}
+
+//         list_level = 1;
+//         for (uint rbrack = i + 1; rbrack < p_temp_stack->length; rbrack++){
+//             if (p_temp_stack->objs[rbrack] == NULL){
+//                 list_level--;
+//             } else if (*((Datatype_e*)(p_temp_stack->objs[rbrack])) == LIST_OBJ){
+//                 list_level++;
+//             }
+
+//             if (list_level == 0){
+//                 generateListFromBrackets((ListObj*)(p_temp_stack->objs[i]), p_temp_stack, i, rbrack);
+//             }
+//         }
+
+
+//         // puts("Must repair the datatypes arr");
+
+        
+//     }
+// }
+
+
+
 // if ( fabs( strtod(token, NULL) ) > 2 * __DBL_EPSILON__ || token[0] == '0'){
 //         return NUM_OBJ;
 //     } else if (strncmp(token, "True", 5) == 0 || strncmp(token, "False", 6) == 0){
