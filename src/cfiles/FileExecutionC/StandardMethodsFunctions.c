@@ -51,8 +51,9 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
     assert(larrow_index <= stop_index);
     assert(nian.tok_ind_len > stop_index);
     // printf();
+    if (num_params == 0){ return -1; }
     int count = 0;
-    NnpStr temp_str;
+    NnpStr temp_str = {0};
     FuncObj* temp_func_ref;
     // puts("\tA");fflush(stdout);
     for(int i = larrow_index + 1; i <= stop_index; i++){
@@ -174,10 +175,10 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
     for(int i = 0; i < num_args + 1; i++){
         popInObjArray(p_obj_arr, p_obj_arr->length - 1);
     }
-    if (is_method){
+    if (is_method && reted){
         freeObj(p_obj_arr->objs[p_obj_arr->length - 1]);
         p_obj_arr->objs[p_obj_arr->length - 1] = reted;
-    } else {
+    } else if (reted) {
         p_obj_arr->objs[p_obj_arr->length] = reted;
     }
 

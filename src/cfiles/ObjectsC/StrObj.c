@@ -56,6 +56,7 @@ StrObj* constructStrObj_char(const char* nullEndedStr){
     ret->operators = &strOperators;
     ret->methods = &strMethods;
     ret->type = STR_OBJ;
+    ret->value.union_mode = NNPSTR_UNIONMODE_BUFFER;
     
     setNnpStr(nullEndedStr, &(ret->value) );
 

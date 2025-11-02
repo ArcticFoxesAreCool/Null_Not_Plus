@@ -1,8 +1,4 @@
-start con StrObj: test
-finish con StrObj: test
-start con StrObj: test
-finish con StrObj: test
-start con NumObj: 1.000000
-finish con NumObj: 1.000000
-start con NumObj: 2.000000
-finish con NumObj: 2.000000
+start con StrObj: 1234567890-
+
+finish con StrObj: 1234567890-
+

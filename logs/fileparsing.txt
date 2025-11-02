@@ -1,19 +1,10 @@
 NNP File from path: ./ExampleNNPfiles/testFunctionCalling.nnp, has been found and opened.
-Line Read: speak! <- "test" substring! <- 1 2
+Line Read: listen! <-
 
-   token[0]: 'speak!'   token[1]: '<-'   token[2]: '"test"'   token[3]: 'substring!'   token[4]: '<-'   token[5]: '1'   token[6]: '2'
+   token[0]: 'listen!'   token[1]: '<-'
 Begin Tokenization Type Detetction
-Token[0]: 'speak!'
+Token[0]: 'listen!'
 	Variable
 Token[1]: '<-'
 	Operator
-Token[2]: '"test"'
-	Value
-Token[3]: 'substring!'
-	Variable
-Token[4]: '<-'
-	Operator
-Token[5]: '1'
-	Value
-Token[6]: '2'
-	Value
+NNP File has been closed.

@@ -20,8 +20,7 @@ NnpStr makeNnpStr(const char* str){
     NnpStr st = {.union_mode = NNPSTR_UNIONMODE_BUFFER, .string.buffer = ""};
     setNnpStr(str, &st);
     return st;
-}
-
+} 
 
 void setNnpStr(const char* str, NnpStr* p_nnpStr){
     assert(str && p_nnpStr);

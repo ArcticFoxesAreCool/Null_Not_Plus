@@ -1,15 +1,31 @@
-speak! <- "test" substring! <- 1 2
+[ -INF ] insert! <- "string here" 0
+
+
+"0123456789" strLen! <-
+
+[ 0 ] set! <- StrObj 0
+
+[ 0 False NumObj ] pop! <- 0
+
+
+[ 0 True [ "fgh" ] DatatypeObj ] find! <- [ "fgh" ]
+
+
+
+
+listen! <-
+
+5.9 truncate! <-
+
+
+asciiToCh! <- 120
+
 
 speak! <- "Hello" + " " + "World"
 
-asciiToCh! <- 72
- + "ello World"
+
+"Test string here" substring! <- 5 11
+
+
 
 "Hello World" + asciitoCh! <- 10
-
-
-
-
-speak! <- asciiToCh! <- 72 + asciiToCh! <- 101 + asciiToCh! <- 108 + asciiToCh! <- 108 + asciiToCh! <- 111 + asciiToCh! <- 32 + asciiToCh! <- 87 + asciiToCh! <- 111 + asciiToCh! <- 114 + asciiToCh! <- 108 + asciiToCh! <- 100 + asciiToCh! <- 10
-
-speak! <- "Hello World" + " " * 2

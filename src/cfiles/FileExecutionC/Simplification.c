@@ -37,15 +37,16 @@ void functionCalled(ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
     int final_index = getFunctionFinalParameterIndex(func_ref->num_args, start_index, stop_index, &big_storage);
 
     // puts("B");fflush(stdout);
+    if (final_index != -1){
+        subCondenseObjsOperators(p_obj_arr, NULL, start_index + 1, final_index);
+        *p_curr_tok_index = final_index;
+    }
 
-    subCondenseObjsOperators(p_obj_arr, NULL, start_index + 1, final_index);
-
-    // puts("A");fflush(stdout);
+    // puts("A");fflush(stdout);1234567890
 
     resolveFunction(p_obj_arr, func_ref->num_args);
 
     // puts("B");fflush(stdout);
-    *p_curr_tok_index = final_index;
     // FUNCTION RESOLUTION
 
 }
@@ -128,6 +129,7 @@ int getListClosingIndex(int open_bracket_index){
 
 static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
     // only start and stop on value/variables
+    // printf("start: %d, stop: %d\n", start_index, stop_index);
     assert(start_index >= 0 && stop_index >= 0 && stop_index >= start_index);
     assert(p_temp_stack && p_temp_stack->objs != NULL && p_temp_stack->capacity > 0);
     // assert(datatype_arr);
@@ -137,13 +139,16 @@ static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatyp
     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes && nian.tok_ind_len > stop_index);
     assert(tok_types.size > 0 && tok_types.types);
 
+    // puts("\tB");fflush(stdout);
+
 
     // const char* curr_tok;
     int list_closed_at;
-
+    
     for(int i = start_index; i <= stop_index; i++){
         // curr_tok = nian.charv + nian.token_indexes[i];
-
+        // printf("[%d]\n", i);
+        // puts("\tC");
 
         if (tok_types.types[i] == VALUE || tok_types.types[i] == VARIABLE){
             
@@ -156,6 +161,7 @@ static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatyp
 
 
                 list_closed_at = getListClosingIndex(i);
+
                 if (list_closed_at == i + 1){
                     i++; 
                     continue;
@@ -167,29 +173,19 @@ static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatyp
                 continue;
             }
 
-
-
             addValVarToTempStack(p_temp_stack, datatype_arr, i);
+
             
         } else if (tok_types.types[i] == OPERATOR){
             
             if (strncmp(nian.charv + nian.token_indexes[i], "<-", 3) == 0){
 
 
-                // puts("A");fflush(stdout);
+                // puts("v");fflush(stdout);
 
                 functionCalled(p_temp_stack, &i, stop_index);
 
-
-                // WORK ON HERE NEXT
-
-
-
-
-
-
-
-
+                // puts("g");fflush(stdout);
 
 
             } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
@@ -231,6 +227,8 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
 
     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes);
     assert(tok_types.size > 0 && tok_types.types);
+
+    // puts("\tA");fflush(stdout);
     
     if (nian.tok_ind_len == 0) return;
 
@@ -249,17 +247,19 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
     subCondenseObjsOperators(&temp_stack, temp_stack_types, 0, nian.tok_ind_len - 1);
 
 
-    // char s[OBJ_PRINTING_CHAR_SIZE];
-    // // for (uint i = 0; i < temp_stack.length; i++){
-    // //     objValtoStr(s, temp_stack.objs[i]);
-    // //     puts(s);
-    // // }
-    // // ListObj* lst_obj = temp_stack.objs[0];
-    // // for(uint i = 0; i < lst_obj->values.length; i++){
-    // //     objValtoStr(s, lst_obj->values.objs[i]);
-    // //     puts(s);
-    // // }
+    char s[OBJ_PRINTING_CHAR_SIZE * 32];
+    for (uint i = 0; i < temp_stack.length; i++){
+        objValtoStr(s, temp_stack.objs[i]);
+        puts(s);
+    }
+//    ListObj* lst_obj = temp_stack.objs[0];
+//     for(uint i = 0; i < lst_obj->values.length; i++){
+//         objValtoStr(s, lst_obj->values.objs[i]);
+//         puts(s);
+//     } 
+
     // objValtoStr(s, temp_stack.objs[0]);
+    // puts("Printing");fflush(stdout);
     // puts(s);
 
 
@@ -372,6 +372,8 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
     assert(nian.tok_ind_len > index && index >= 0);
     if (nian.tok_ind_len == 0) return;
 
+    // printf("\t%d, \n", index);fflush(stdout);
+    
 
     if (tok_types.types[index] == VALUE){
 
@@ -381,30 +383,13 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
 
         object_p obj = constructFromValue(index);
 
-        // if (obj == NULL && datatype_arr[p_temp_stack->length] == LIST_OBJ){
-        //     for (int openbrack = p_temp_stack->length - 1; openbrack >= 0; openbrack--){
-
-        //         if (*((Datatype_e*)(p_temp_stack->objs[openbrack])) == LIST_OBJ){
-        //             if (((ListObj*)(p_temp_stack->objs[openbrack]))->values.capacity == DEFAULT_OBJ_ARRAY_CAPACITY + 1 && ((ListObj*)(p_temp_stack->objs[openbrack]))->values.length == 0){
-        //                 ((ListObj*)(p_temp_stack->objs[openbrack]))->values.objs = realloc(((ListObj*)(p_temp_stack->objs[openbrack]))->values.objs, DEFAULT_OBJ_ARRAY_CAPACITY * 2);
-        //                 assert(((ListObj*)(p_temp_stack->objs[openbrack]))->values.objs);
-        //                 ((ListObj*)(p_temp_stack->objs[openbrack]))->values.capacity = 2 * DEFAULT_OBJ_ARRAY_CAPACITY;
-        //                 generateListFromBrackets((ListObj*)(p_temp_stack->objs[openbrack]), p_temp_stack, openbrack, index);
-        //                 return;
-        //             }
-        //         }
-
-        //     }
-        // }
-
         assert(obj);
         appendInObjArray(p_temp_stack, obj);
         
     } else if (tok_types.types[index] == VARIABLE){
         // printf("DEBUG: %d\n", index);
 
-        NnpStr tmp_str;
-        setNnpStr(nian.charv + nian.token_indexes[index], &tmp_str);
+        NnpStr tmp_str = makeNnpStr(nian.charv + nian.token_indexes[index]);
         object_p obj = getFromStorage(&big_storage, &tmp_str);
         assert(obj && "unidentified variable");
 
@@ -414,6 +399,8 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
 
         appendInObjArray(p_temp_stack, obj);
         freeNnpStr(&tmp_str);
+
+        // printf("DEBUG 2: %d\n", index);
     } else {
         logMessage(FILE_PARSING, "Misread addValVarToTempStack\n");
         puts("Misread addValVarToTempStack");
@@ -847,8 +834,7 @@ object_p constructFromValue(int tok_index){
         logMessage(FILE_PARSING, "Attempt to make datatype of invalid value\n");
         exit(1);
     case STR_OBJ:{
-        NnpStr tmp_str;
-        setNnpStr(tok + 1, &tmp_str);
+        NnpStr tmp_str = makeNnpStr(tok + 1);
         size_t le;
         StrObj* ret;
         if (tmp_str.union_mode == NNPSTR_UNIONMODE_BUFFER){
