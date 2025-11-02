@@ -36,8 +36,15 @@ object_p copyObj(const object_p this_obj){
                 return  (object_p)constructStrObj_char( ((StrObj*)this_obj)->value.string.dyn_str );
             }
 
+        case FUNC_OBJ:
+            ret = malloc(sizeof(FuncObj));
+            assert(ret && "malloc a func obj failed while copying obj");
+            memcpy(ret, this_obj, sizeof(FuncObj));
+            return ret;
         default:
-            assert(false && "copy object datatype not detected");
+            puts("copy object datatype not detected");
+            exit(1);
+            break;
     }
 }
 

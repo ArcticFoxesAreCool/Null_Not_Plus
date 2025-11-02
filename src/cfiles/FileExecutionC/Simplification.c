@@ -9,6 +9,49 @@ Storage big_storage = {
     .objs = NULL
 };
 
+// int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_index, const Storage* p_store){
+
+
+
+
+static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index);
+
+// functionCalled(p_temp_stack, &i, stop_index);
+void functionCalled(ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
+
+    assert(p_obj_arr && p_curr_tok_index);
+    Datatype_e dat = *(Datatype_e*)(p_obj_arr->objs[p_obj_arr->length - 1]);
+    if (dat != FUNC_OBJ){logMessage(FILE_PARSING, "Function called with a non-FuncObj\n"); exit(1);}
+
+    extern Reader nian; extern TokenTyper tok_types;
+    assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 1 && nian.token_indexes && nian.tok_ind_len > *p_curr_tok_index);
+    assert(tok_types.size > 1 && tok_types.types);
+
+    FuncObj* func_ref = p_obj_arr->objs[p_obj_arr->length - 1];
+
+    if (func_ref->func_type == USER_FUNC){puts("Have not implemented user-defined functions yet"); exit(1);}
+
+    // puts("A");fflush(stdout);
+
+    int start_index = *p_curr_tok_index;
+    int final_index = getFunctionFinalParameterIndex(func_ref->num_args, start_index, stop_index, &big_storage);
+
+    // puts("B");fflush(stdout);
+
+    subCondenseObjsOperators(p_obj_arr, NULL, start_index + 1, final_index);
+
+    // puts("A");fflush(stdout);
+
+    resolveFunction(p_obj_arr, func_ref->num_args);
+
+    // puts("B");fflush(stdout);
+    *p_curr_tok_index = final_index;
+    // FUNCTION RESOLUTION
+
+}
+
+
+
 
 
 void initBigStorage(int size){
@@ -50,7 +93,7 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index);
 
 
 
-static int getListClosingIndex(int open_bracket_index){
+int getListClosingIndex(int open_bracket_index){
     assert(open_bracket_index >= 0);
 
     extern Reader nian; extern TokenTyper tok_types;
@@ -85,7 +128,6 @@ static int getListClosingIndex(int open_bracket_index){
 
 static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
     // only start and stop on value/variables
-
     assert(start_index >= 0 && stop_index >= 0 && stop_index >= start_index);
     assert(p_temp_stack && p_temp_stack->objs != NULL && p_temp_stack->capacity > 0);
     // assert(datatype_arr);
@@ -130,7 +172,27 @@ static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatyp
             addValVarToTempStack(p_temp_stack, datatype_arr, i);
             
         } else if (tok_types.types[i] == OPERATOR){
-            if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
+            
+            if (strncmp(nian.charv + nian.token_indexes[i], "<-", 3) == 0){
+
+
+                // puts("A");fflush(stdout);
+
+                functionCalled(p_temp_stack, &i, stop_index);
+
+
+                // WORK ON HERE NEXT
+
+
+
+
+
+
+
+
+
+
+            } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
                 i++;
 
                 addValVarToTempStack(p_temp_stack, datatype_arr, i);
@@ -187,18 +249,19 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
     subCondenseObjsOperators(&temp_stack, temp_stack_types, 0, nian.tok_ind_len - 1);
 
 
-    char s[OBJ_PRINTING_CHAR_SIZE];
-    // for (uint i = 0; i < temp_stack.length; i++){
-    //     objValtoStr(s, temp_stack.objs[i]);
-    //     puts(s);
-    // }
-    // ListObj* lst_obj = temp_stack.objs[0];
-    // for(uint i = 0; i < lst_obj->values.length; i++){
-    //     objValtoStr(s, lst_obj->values.objs[i]);
-    //     puts(s);
-    // }
-    objValtoStr(s, temp_stack.objs[0]);
-    puts(s);
+    // char s[OBJ_PRINTING_CHAR_SIZE];
+    // // for (uint i = 0; i < temp_stack.length; i++){
+    // //     objValtoStr(s, temp_stack.objs[i]);
+    // //     puts(s);
+    // // }
+    // // ListObj* lst_obj = temp_stack.objs[0];
+    // // for(uint i = 0; i < lst_obj->values.length; i++){
+    // //     objValtoStr(s, lst_obj->values.objs[i]);
+    // //     puts(s);
+    // // }
+    // objValtoStr(s, temp_stack.objs[0]);
+    // puts(s);
+
 
     freeObjArrayEntries(&temp_stack);
     free(temp_stack.objs);
@@ -338,7 +401,7 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
         appendInObjArray(p_temp_stack, obj);
         
     } else if (tok_types.types[index] == VARIABLE){
-        printf("DEBUG: %d\n", index);
+        // printf("DEBUG: %d\n", index);
 
         NnpStr tmp_str;
         setNnpStr(nian.charv + nian.token_indexes[index], &tmp_str);
@@ -362,7 +425,7 @@ static OperatorsStruct* getObjOperators(object_p obj){
     return ((NumObj*)obj)->operators;
 }
 
-static BuiltMethodsStruct* getObjMethods(object_p obj){
+BuiltMethodsStruct* getObjMethods(object_p obj){
     return ((NumObj*)obj)->methods;
 }
 
@@ -811,165 +874,3 @@ object_p constructFromValue(int tok_index){
 }
 
 
-
-
-// static void generateListFromBrackets(ListObj* dst, ObjArray* p_temp_stack, int lbracket_index, int rbracket_index){
-//     // printf("L: %d, R: %d, len: %u\n", lbracket_index, rbracket_index, p_temp_stack->length);
-//     assert(dst && dst->values.objs && dst->values.length == 0 && dst->values.capacity > 0);
-//     assert(p_temp_stack && p_temp_stack->objs && p_temp_stack->capacity >= p_temp_stack->length && p_temp_stack->length >= 2);
-//     assert(lbracket_index < rbracket_index && lbracket_index >= 0 && rbracket_index <= (int)p_temp_stack->length);
-
-//     ObjArray* dst_obj_arr_p = &(dst->values);
-//     Datatype_e curr_obj_type = NAO;
-
-//     int curr_rbracket = rbracket_index;
-//     const int index = lbracket_index + 1;
-
-
-
-//     while (index < curr_rbracket){
-//         if (p_temp_stack->objs[index] == NULL){puts("unexpected NULL in line-reading obj array");exit(1);}
-
-        
-//         curr_obj_type = *((Datatype_e*)(p_temp_stack->objs[index]));
-
-//         if (curr_obj_type != LIST_OBJ){
-//             appendInObjArray(dst_obj_arr_p, p_temp_stack->objs[index]);
-//             popInObjArray(p_temp_stack, index);
-//             curr_rbracket--;
-//             continue;
-//         } 
-
-//         puts("This is bad...");
-//         exit(1);
-//     }
-//     // popInObjArray(p_temp_stack, index);
-
-// }
-
-
-
-
-
-
-
-// // sublist found
-// int lis_level = 1;
-// ObjArray empty = {.capacity = DEFAULT_OBJ_ARRAY_CAPACITY, .length = 0, .objs = NULL};
-// ListObj* sublist = constructListObj(&empty);
-
-// for (int i = index + 1; i < curr_rbracket; i++){
-//     if (p_temp_stack->objs[i] == NULL){
-//         lis_level--;
-//     } else if (*((Datatype_e*)(p_temp_stack->objs[i])) == LIST_OBJ){
-//         lis_level++;
-//     }
-
-//     if (lis_level == 0){
-//         generateListFromBrackets(sublist, p_temp_stack, index, i);
-//         curr_rbracket = curr_rbracket - (i - index) - 1;
-//         break;
-//     }
-// }
-// popInObjArray(p_temp_stack, index);
-
-
-// appendInObjArray(dst_obj_arr_p, sublist);
-// freeObj(sublist);
-
-
-
-
-
-
-
-
-
-
-// void fillLists(ObjArray* p_temp_stack, Datatype_e* datatype_arr){
-//     // assert(p_temp_stack && p_temp_stack->objs &&  p_temp_stack->capacity >= 1);
-//     // extern Reader nian;    extern TokenTyper tok_types;
-//     // assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity >= nian.tok_ind_len && nian.token_indexes);
-//     // assert(tok_types.size >= 2 && tok_types.types);
-
-//     if (p_temp_stack->length == 0) return;
-
-//     int list_level = 0;
-
-//     for(uint i = 0; i < p_temp_stack->length; i++){
-//         if (datatype_arr[i] != LIST_OBJ) continue;
-
-//         if (p_temp_stack->objs[i] == NULL){puts("invalid ListObj ending token"); exit(1);}
-
-//         list_level = 1;
-//         for (uint rbrack = i + 1; rbrack < p_temp_stack->length; rbrack++){
-//             if (p_temp_stack->objs[rbrack] == NULL){
-//                 list_level--;
-//             } else if (*((Datatype_e*)(p_temp_stack->objs[rbrack])) == LIST_OBJ){
-//                 list_level++;
-//             }
-
-//             if (list_level == 0){
-//                 generateListFromBrackets((ListObj*)(p_temp_stack->objs[i]), p_temp_stack, i, rbrack);
-//             }
-//         }
-
-
-//         // puts("Must repair the datatypes arr");
-
-        
-//     }
-// }
-
-
-
-// if ( fabs( strtod(token, NULL) ) > 2 * __DBL_EPSILON__ || token[0] == '0'){
-//         return NUM_OBJ;
-//     } else if (strncmp(token, "True", 5) == 0 || strncmp(token, "False", 6) == 0){
-//         return BOOL_OBJ;
-//     } else if (isDattype(token)){
-//         return DATATYPE_OBJ;
-//     } else if (token[0] == '\"'){
-//         return STR_OBJ;
-//     } else if (strncmp("[", token, 2) == 0 || strncmp("]", token, 2) == 0){
-//         return LIST_OBJ;
-
-
-    // "->",// assignment and return
-    // "~->",// typecast
-    // "<-",// func and method call
-    // "~<-",// class constructor 
-    // "+",// add
-    // "~+",// subtract
-    // "*",// mult
-    // "~*",// div
-    // "=",// is equal to
-    // "~=",// not equal
-    // ">",// greater than
-    // "<",// less than
-    // "."// index and class var/method getting
-
-
-
-
-
-
-
-/*
-Plan:
-steps:
-condense,
-    what should be left, function calls, keywords, and assignment operators
-    contains 
-    // find a value/var, continue to evaluate the operators that come next
-*/
-
-
-
-// void executeLine(){
-//     // extern Reader nian;
-//     // extern TokenTyper tok_types;
-
-//     // int operator_count = 0;
-
-// }

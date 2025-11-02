@@ -1,71 +1,8 @@
-start con ListObj
-finish con ListObj
-start con ListObj
-finish con ListObj
+start con StrObj: test
+finish con StrObj: test
+start con StrObj: test
+finish con StrObj: test
 start con NumObj: 1.000000
 finish con NumObj: 1.000000
-start con NumObj: 3.000000
-finish con NumObj: 3.000000
-start add NumObj to NumObj
-	start con NumObj: 4.000000
-	finish con NumObj: 4.000000
-finish add NumObj to NumObj: 4.000000
-start con NumObj: 1.750000
-finish con NumObj: 1.750000
-start div NumObj to NumObj
-	start con NumObj: 2.285714
-	finish con NumObj: 2.285714
-finish div NumObj to NumObj: 2.285714
-start con DatatypeObj: 2
-finish con DatatypeObj: 2
-start con BoolObj: 0
-finish con BoolObj: 0
-start con BoolObj: 1
-finish con BoolObj: 1
-start greater than BoolObj and BoolObj
-	start con BoolObj: 0
-	finish con BoolObj: 0
-finish greater than BoolObj and BoolObj: 0
-start con ListObj
-finish con ListObj
-start con ListObj
-finish con ListObj
-start con ListObj
-finish con ListObj
-start con ListObj
-finish con ListObj
-start con DatatypeObj: 4
-finish con DatatypeObj: 4
-Get Datatype of ListObj
-start con DatatypeObj: 3
-finish con DatatypeObj: 3
-start con DatatypeObj: 3
-finish con DatatypeObj: 3
-start equals DatatypeObj to DatatypeObj
-	start con BoolObj: 1
-	finish con BoolObj: 1
-finish equals DatatypeObj to DatatypeObj: 1
-start con StrObj: str here
-finish con StrObj: str here
-start con StrObj: str here
-finish con StrObj: str here
-start con NumObj: 5.000000
-finish con NumObj: 5.000000
-start add NumObj to ListObj
-	start con ListObj
-		start con ListObj
-		finish con ListObj
-		start con StrObj: str here
-		finish con StrObj: str here
-	finish con ListObj
-finish add NumObj to ListObj, value at index 5: 0
-start con NumObj: 3.000000
-finish con NumObj: 3.000000
-start at_loc method ListObj
-finish at_loc method ListObj
-start con ListObj
-finish con ListObj
-start con NumObj: 0.000000
-finish con NumObj: 0.000000
-start at_loc method ListObj
-finish at_loc method ListObj
+start con NumObj: 2.000000
+finish con NumObj: 2.000000

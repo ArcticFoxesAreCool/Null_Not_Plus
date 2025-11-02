@@ -39,6 +39,7 @@
 #include "ObjectsH/ListObj.h"
 #include "ObjectsH/StrObj.h"
 
+#include "ObjectsH/FuncObj.h"
 
 
 
@@ -59,7 +60,7 @@
 
 
 #include "FileExecutionH/Simplification.h"
-
+#include "FileExecutionH/StandardMethodsFunctions.h"
 
 
 

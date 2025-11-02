@@ -24,20 +24,14 @@ void appendStorage(Storage* p_store, const object_p obj, const NnpStr* name){
     }
     p_store->objs[p_store->length] = copyObj(obj);
     assert(p_store->objs[p_store->length]);
-    // printf("\nDAT: %d\n", *((Datatype_e*)(p_store->objs[p_store->length])));
-
-    // NnpStr tempStr;
-    // if (name->union_mode == NNPSTR_UNIONMODE_BUFFER){
-    //     setNnpStr(name->string.buffer, &tempStr);
-    // } else {
-    //     setNnpStr(name->string.dyn_str, &tempStr);
-    // }
-    p_store->identifiers[p_store->length].union_mode = name->union_mode;
+   
+    
     if (name->union_mode == NNPSTR_UNIONMODE_BUFFER){
-        strncpy(p_store->identifiers[p_store->length].string.buffer, name->string.buffer, STRING_U_BUFFER_SIZE);
+        setNnpStr(name->string.buffer, &(p_store->identifiers[p_store->length]));
     } else {
-        strcpy(p_store->identifiers[p_store->length].string.dyn_str, name->string.dyn_str);
+        setNnpStr(name->string.dyn_str, &(p_store->identifiers[p_store->length]));
     }
+
 
     p_store->length += 1;
 }
