@@ -98,31 +98,34 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
     // for (uint i = 0; i < p_obj_arr->length; i++){printf("\t[%u]: %p\n", i, p_obj_arr->objs[i]);}
     assert(p_obj_arr && p_obj_arr->capacity >= (uint)num_args + 1 && p_obj_arr->length >= (uint)num_args + 1 && p_obj_arr->objs);
     assert(num_args >= 0);
-
     FuncObj* func = p_obj_arr->objs[p_obj_arr->length - num_args - 1];
     enum PrebuiltFuncs_e function_type = func->func_type;
-
+    
     bool is_method;
     switch (function_type){
-    case TRUNCATE_M:
-    case STR_LEN_M:
-    case SUBSTRING_M:
-    case POP_M:
-    case FIND_M:
-    case INSERT_M:
-    case SET_M:
+        case TRUNCATE_M:
+        case STR_LEN_M:
+        case SUBSTRING_M:
+        case POP_M:
+        case FIND_M:
+        case INSERT_M:
+        case SET_M:
         is_method = true;
         break;
-    default:
+        default:
         is_method = false;
     }
-
-
+    
+    // puts("A");//fflush(stdout);
+    // printf("\ttype: %d\n", *((Datatype_e*)(p_obj_arr->objs[0])));fflush(stdout);
+    
     object_p method_obj = NULL;
     if (is_method){
         method_obj = p_obj_arr->objs[p_obj_arr->length - num_args - 2];
+        // printf("\t%s\n", ((StrObj*)method_obj)->value.string.buffer);fflush(stdout);
     }
-
+    
+    // puts("B");fflush(stdout);
     // puts("\tA");fflush(stdout);
     object_p reted;
     switch(function_type){
@@ -179,7 +182,8 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         freeObj(p_obj_arr->objs[p_obj_arr->length - 1]);
         p_obj_arr->objs[p_obj_arr->length - 1] = reted;
     } else if (reted) {
-        p_obj_arr->objs[p_obj_arr->length] = reted;
+        appendInObjArray(p_obj_arr, reted);
+        // p_obj_arr->objs[p_obj_arr->length] = reted;
     }
 
     // puts("\tC");fflush(stdout);

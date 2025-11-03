@@ -1,10 +1,21 @@
 NNP File from path: ./ExampleNNPfiles/testFunctionCalling.nnp, has been found and opened.
-Line Read: listen! <-
+Line Read: "0123456789" substring! <- 0 listen! <- ~-> NumObj
 
-   token[0]: 'listen!'   token[1]: '<-'
+   token[0]: '"0123456789"'   token[1]: 'substring!'   token[2]: '<-'   token[3]: '0'   token[4]: 'listen!'   token[5]: '<-'   token[6]: '~->'   token[7]: 'NumObj'
 Begin Tokenization Type Detetction
-Token[0]: 'listen!'
+Token[0]: '"0123456789"'
+	Value
+Token[1]: 'substring!'
 	Variable
-Token[1]: '<-'
+Token[2]: '<-'
 	Operator
-NNP File has been closed.
+Token[3]: '0'
+	Value
+Token[4]: 'listen!'
+	Variable
+Token[5]: '<-'
+	Operator
+Token[6]: '~->'
+	Operator
+Token[7]: 'NumObj'
+	Value

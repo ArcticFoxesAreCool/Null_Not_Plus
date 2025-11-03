@@ -36,13 +36,14 @@ void functionCalled(ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
     int start_index = *p_curr_tok_index;
     int final_index = getFunctionFinalParameterIndex(func_ref->num_args, start_index, stop_index, &big_storage);
 
-    // puts("B");fflush(stdout);
+    // puts("\tB");fflush(stdout);
+
     if (final_index != -1){
         subCondenseObjsOperators(p_obj_arr, NULL, start_index + 1, final_index);
         *p_curr_tok_index = final_index;
     }
 
-    // puts("A");fflush(stdout);1234567890
+    // puts("\tA");fflush(stdout);
 
     resolveFunction(p_obj_arr, func_ref->num_args);
 
@@ -188,7 +189,7 @@ static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatyp
                 // puts("g");fflush(stdout);
 
 
-            } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE) && (tok_types.types[i-1] == VALUE || tok_types.types[i-1] == VARIABLE)){
+            } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE)){
                 i++;
 
                 addValVarToTempStack(p_temp_stack, datatype_arr, i);
@@ -248,19 +249,19 @@ void condenseObjsAndOperators(ObjArray* p_empty_objarr){
 
 
     char s[OBJ_PRINTING_CHAR_SIZE * 32];
-    for (uint i = 0; i < temp_stack.length; i++){
-        objValtoStr(s, temp_stack.objs[i]);
-        puts(s);
-    }
+    // for (uint i = 0; i < temp_stack.length; i++){
+    //     objValtoStr(s, temp_stack.objs[i]);
+    //     puts(s);
+    // }
 //    ListObj* lst_obj = temp_stack.objs[0];
 //     for(uint i = 0; i < lst_obj->values.length; i++){
 //         objValtoStr(s, lst_obj->values.objs[i]);
 //         puts(s);
 //     } 
 
-    // objValtoStr(s, temp_stack.objs[0]);
-    // puts("Printing");fflush(stdout);
-    // puts(s);
+    objValtoStr(s, temp_stack.objs[0]);
+    puts("Printing");fflush(stdout);
+    puts(s);
 
 
     freeObjArrayEntries(&temp_stack);
@@ -432,12 +433,13 @@ static void operationResolution(ObjArray* p_temp_stack, int final_index){
     assert(nian.tok_ind_len > final_index);
     if (nian.tok_ind_len == 0) return;
 
-    const int op1_tok_ind = final_index - 2, op2_tok_ind = final_index, operat_tok_ind = final_index - 1;
-    assert(
-        (tok_types.types[op1_tok_ind] == VALUE || tok_types.types[op1_tok_ind] == VARIABLE)
-        && (tok_types.types[operat_tok_ind] == OPERATOR)
-        && (tok_types.types[op2_tok_ind] == VALUE || tok_types.types[op2_tok_ind] == VARIABLE)
-    );
+    // const int op1_tok_ind = final_index - 2, op2_tok_ind = final_index,
+    const int operat_tok_ind = final_index - 1;
+    // assert(
+    //     (tok_types.types[op1_tok_ind] == VALUE || tok_types.types[op1_tok_ind] == VARIABLE)
+    //     && (tok_types.types[operat_tok_ind] == OPERATOR)
+    //     && (tok_types.types[op2_tok_ind] == VALUE || tok_types.types[op2_tok_ind] == VARIABLE)
+    // );
 
 
     object_p op1 = p_temp_stack->objs[p_temp_stack->length - 2];

@@ -1,4 +1,21 @@
-start con StrObj: 1234567890-
+start con StrObj: 0123456789
+finish con StrObj: 0123456789
+start con StrObj: 0123456789
+finish con StrObj: 0123456789
+start con NumObj: 0.000000
+finish con NumObj: 0.000000
+start con StrObj: 10
 
-finish con StrObj: 1234567890-
+finish con StrObj: 10
 
+start con StrObj: 10
+
+finish con StrObj: 10
+
+start con DatatypeObj: 0
+finish con DatatypeObj: 0
+start cast NumObj from StrObj
+	start con NumObj: 10.000000
+	finish con NumObj: 10.000000
+finish cast NumObj from StrObj: 10.000000
+start sub_string method StrObj

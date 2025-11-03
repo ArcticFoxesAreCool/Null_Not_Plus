@@ -1,3 +1,9 @@
+"0123456789" substring! <- 0 listen! <- ~-> NumObj
+
+listen! <- substring! <- 2 5
+
+asciiToCh! <- 85 ~+ 6 strLen! <-
+
 [ -INF ] insert! <- "string here" 0
 
 
