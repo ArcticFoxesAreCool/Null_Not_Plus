@@ -262,7 +262,7 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
             datatype_arr[p_temp_stack->length] = *((Datatype_e*)obj);
         }
 
-        appendInObjArray(obj);
+        appendInObjArray(p_temp_stack, obj);
         // if (p_temp_stack->capacity == p_temp_stack->length){
         //     p_temp_stack->capacity *= 2;
         //     p_temp_stack->objs = realloc( p_temp_stack->objs, sizeof(object_p) * p_temp_stack->capacity);
