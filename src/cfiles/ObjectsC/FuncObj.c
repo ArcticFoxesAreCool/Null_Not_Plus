@@ -14,7 +14,6 @@ const char* prebuilts_identifiers[] = {
     "find!",
     "insert!",
     "set!",
-
     "speak!",
     "asciiToCh!",
     "listen!"

@@ -61,8 +61,8 @@
 
 #include "FileExecutionH/Simplification.h"
 #include "FileExecutionH/StandardMethodsFunctions.h"
-
-
+#include "FileExecutionH/VariableAssignment.h"
+#include "FileExecutionH/ExecutionManager.h"
 
 
 // struct _FuncObj_t {

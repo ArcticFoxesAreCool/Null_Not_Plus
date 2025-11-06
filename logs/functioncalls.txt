@@ -1,21 +1,105 @@
-start con StrObj: 0123456789
-finish con StrObj: 0123456789
-start con StrObj: 0123456789
-finish con StrObj: 0123456789
-start con NumObj: 0.000000
-finish con NumObj: 0.000000
-start con StrObj: 10
+start con NumObj: 10.000000
+finish con NumObj: 10.000000
+start con StrObj: 
 
-finish con StrObj: 10
+finish con StrObj: 
 
-start con StrObj: 10
+start con StrObj: 
 
-finish con StrObj: 10
+finish con StrObj: 
+
+start con StrObj: 
+
+finish con StrObj: 
+
+start con StrObj: 
+
+finish con StrObj: 
+
+start con NumObj: 2.598076
+finish con NumObj: 2.598076
+start con StrObj: Enter hexagon side length:   
+finish con StrObj: Enter hexagon side length:   
+start con StrObj: Enter hexagon side length:   
+finish con StrObj: Enter hexagon side length:   
+start con StrObj: 1
+
+finish con StrObj: 1
+
+start con StrObj: 1
+
+finish con StrObj: 1
 
 start con DatatypeObj: 0
 finish con DatatypeObj: 0
 start cast NumObj from StrObj
-	start con NumObj: 10.000000
-	finish con NumObj: 10.000000
-finish cast NumObj from StrObj: 10.000000
-start sub_string method StrObj
+	start con NumObj: 1.000000
+	finish con NumObj: 1.000000
+finish cast NumObj from StrObj: 1.000000
+start mult NumObj to NumObj
+	start con NumObj: 1.000000
+	finish con NumObj: 1.000000
+finish mult NumObj to NumObj: 1.000000
+start mult NumObj to NumObj
+	start con NumObj: 2.598076
+	finish con NumObj: 2.598076
+finish mult NumObj to NumObj: 2.598076
+start con DatatypeObj: 2
+finish con DatatypeObj: 2
+start cast StrObj from NumObj
+	start con StrObj: 2.598076
+	finish con StrObj: 2.598076
+finish cast NumObj to StrObj dyn: 2.598076
+start con StrObj: 2.598076
+finish con StrObj: 2.598076
+start con StrObj: 2.598076
+finish con StrObj: 2.598076
+start con StrObj: 
+
+finish con StrObj: 
+
+start con StrObj: Your area is... 
+finish con StrObj: Your area is... 
+start con StrObj: Your area is... 
+finish con StrObj: Your area is... 
+start add StrObj to StrObj
+	start con StrObj: 
+Your area is... 
+	finish con StrObj: 
+Your area is... 
+finish add StrObj to StrObj: 
+Your area is... 
+start con StrObj: 2.598076
+finish con StrObj: 2.598076
+start add StrObj to StrObj
+	start con StrObj: 
+Your area is... 2.598076
+	finish con StrObj: 
+Your area is... 2.598076
+finish add StrObj to StrObj: 
+Your area is... 2.598076
+start con StrObj: !
+finish con StrObj: !
+start con StrObj: !
+finish con StrObj: !
+start add StrObj to StrObj
+	start con StrObj: 
+Your area is... 2.598076!
+	finish con StrObj: 
+Your area is... 2.598076!
+finish add StrObj to StrObj: 
+Your area is... 2.598076!
+start con StrObj: 
+
+finish con StrObj: 
+
+start add StrObj to StrObj
+	start con StrObj: 
+Your area is... 2.598076!
+
+	finish con StrObj: 
+Your area is... 2.598076!
+
+finish add StrObj to StrObj: 
+Your area is... 2.598076!
+

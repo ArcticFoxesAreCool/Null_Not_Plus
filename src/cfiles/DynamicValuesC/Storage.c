@@ -67,3 +67,15 @@ void freeStorage(Storage* p_store){
 
     free(p_store);
 }
+
+
+void setInStorage(Storage* p_store, const NnpStr* name, object_p new_val){
+    assert(new_val);
+    for (uint i = 0; i < p_store->length; i++){
+        if (NnpStrEq(  name, &(p_store->identifiers[i])  )){
+            freeObj(p_store->objs[i]);
+            p_store->objs[i] = copyObj(new_val);
+            return;
+        }
+    }
+}

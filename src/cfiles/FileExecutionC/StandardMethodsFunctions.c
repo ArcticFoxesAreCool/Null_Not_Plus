@@ -71,6 +71,9 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
                 if (temp_func_ref->func_type == USER_FUNC){puts("Have not implemented user-functions yet"); exit(1);}
 
                 count -= temp_func_ref->num_args;
+            } else if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0) {
+                if (count == num_params) return i - 1;
+                else goto outOfLoop;
             } else {
                 count--;
             }
@@ -83,6 +86,7 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
             return i;
         }
     }
+    outOfLoop:
     // printf("NUM PARAMS %d", count);
     logMessage(FILE_PARSING, "Function Arguments not found\n");
     exit(1);

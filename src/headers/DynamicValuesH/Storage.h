@@ -23,6 +23,7 @@ struct _Storage{
 
 
 object_p getFromStorage(const Storage* p_store, const NnpStr* name);
+void setInStorage(Storage* p_store, const NnpStr* name, object_p new_val);
 
 void appendStorage(Storage* p_store, const object_p obj, const NnpStr* name);
 void removeStorage(Storage* p_store, const NnpStr* name);

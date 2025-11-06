@@ -10,7 +10,7 @@ int main(__unused int argc, __unused char** argv){
     initLogging();
 
 
-    testFunctionCalls();
+    executeCode("./ExampleNNPfiles/executeWholeFile.nnp");
 
 
 
