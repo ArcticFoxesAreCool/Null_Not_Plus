@@ -14,18 +14,18 @@ void* speakFunction(StrObj* str){
 
 StrObj* listenFunction(){
     uint length = 8;
-    char* ear = malloc(length);
+    char* ear = myMalloc(length);
     fgets(ear, length, stdin);
 
     while (strnChOccur(ear, length, '\n') == NULL){
-        ear = realloc(ear, length * 2);
+        ear = myRealloc(ear, length * 2);
         assert(ear);
 
         fgets(ear + length - 1, length + 1, stdin);
         length *= 2;
     }
     StrObj* ret = constructStrObj_char(ear);
-    free(ear);
+    myFree(ear);
     return ret;
 }
 
@@ -114,10 +114,10 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         case FIND_M:
         case INSERT_M:
         case SET_M:
-        is_method = true;
-        break;
+            is_method = true;
+            break;
         default:
-        is_method = false;
+            is_method = false;
     }
     
     // puts("A");//fflush(stdout);

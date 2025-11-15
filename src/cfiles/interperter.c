@@ -1,20 +1,21 @@
 #include "../headers/datatypes.h"
 
 
-#include "../headers/TestingH/testFunctionCall.h"
 
-
-
-int main(__unused int argc, __unused char** argv){
+int main(int argc, char** argv){
 
     initLogging();
 
-
-    executeCode("./ExampleNNPfiles/executeWholeFile.nnp");
+    if (argc == 2){
+        executeCode(argv[1]);
+    } else {
+        puts("Provide a NNP file path");
+    }
 
 
 
     closeLogging();
+ 
     
 }
 

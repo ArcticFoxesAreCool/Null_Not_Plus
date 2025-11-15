@@ -26,6 +26,7 @@ typedef struct _OperatorsStruct OperatorsStruct;
 typedef struct _BuiltMethodsStruct BuiltMethodsStruct;
 
 
+#define NUM_PREBUILTS_IDENTIFIERS 10
 
 
 enum PrebuiltFuncs_e {

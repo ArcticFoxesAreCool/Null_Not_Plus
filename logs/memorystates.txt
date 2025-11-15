@@ -1,0 +1,54 @@
+Local Variables:
+	truncate! : FuncObj(Argc = 0)
+	strLen! : FuncObj(Argc = 0)
+	substring! : FuncObj(Argc = 2)
+	pop! : FuncObj(Argc = 1)
+	find! : FuncObj(Argc = 1)
+	insert! : FuncObj(Argc = 2)
+	set! : FuncObj(Argc = 2)
+	speak! : FuncObj(Argc = 1)
+	asciiToCh! : FuncObj(Argc = 1)
+	listen! : FuncObj(Argc = 0)
+	\n : "
+"
+Finished line 1
+
+Local Variables:
+	truncate! : FuncObj(Argc = 0)
+	strLen! : FuncObj(Argc = 0)
+	substring! : FuncObj(Argc = 2)
+	pop! : FuncObj(Argc = 1)
+	find! : FuncObj(Argc = 1)
+	insert! : FuncObj(Argc = 2)
+	set! : FuncObj(Argc = 2)
+	speak! : FuncObj(Argc = 1)
+	asciiToCh! : FuncObj(Argc = 1)
+	listen! : FuncObj(Argc = 0)
+	\n : "
+"
+Finished line 2
+
+Local Variables:
+	truncate! : FuncObj(Argc = 0)
+	strLen! : FuncObj(Argc = 0)
+	substring! : FuncObj(Argc = 2)
+	pop! : FuncObj(Argc = 1)
+	find! : FuncObj(Argc = 1)
+	insert! : FuncObj(Argc = 2)
+	set! : FuncObj(Argc = 2)
+	speak! : FuncObj(Argc = 1)
+	asciiToCh! : FuncObj(Argc = 1)
+	listen! : FuncObj(Argc = 0)
+	\n : "
+"
+Finished line 3
+
+
+Allocation Tracking
+	Mallocs: 78
+	Callocs: 0
+	Reallocs: 2
+	Frees: 74
+	Malloc and Calloc Bytes Allocated: 3198
+Net allocations: 4
+

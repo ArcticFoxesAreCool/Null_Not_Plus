@@ -1,0 +1,18 @@
+asciiToCh! <- 10 -> \n
+[  ] -> lst
+
+lst insert! <- DatatypeObj 0 -> lst
+lst set! <- inf 0 -> lst
+
+speak! <- lst ~-> StrObj + \n
+speak! <- lst . 0 ~-> StrObj + \n
+
+
+lst pop! <- 0 -> lst
+speak! <- lst ~-> StrObj + \n
+
+[ 5 "index 1" True [ "inside sublist!" ] ] -> lst2
+speak! <- lst2 ~-> StrObj + \n
+
+lst2 find! <- [ "inside sublist!" ] -> location
+speak! <- location ~-> StrObj + \n

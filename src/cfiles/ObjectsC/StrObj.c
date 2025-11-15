@@ -50,7 +50,7 @@ StrObj* constructStrObj_char(const char* nullEndedStr){
  
     assert(nullEndedStr);
 
-    StrObj* ret = malloc(sizeof(StrObj));
+    StrObj* ret = myMalloc(sizeof(StrObj));
     assert(ret && "Malloc a new str fail");
 
     ret->operators = &strOperators;
@@ -196,13 +196,13 @@ static ListObj* castList(object_p op){
     ObjArray temp = {
         .capacity = DEFAULT_OBJ_ARRAY_CAPACITY,
         .length = 1,
-        .objs = malloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
+        .objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
     };
     temp.objs[0] = copyObj(op);
     
     ListObj* ret = constructListObj(&temp);
-    free(temp.objs[0]);
-    free(temp.objs);
+    myFree(temp.objs[0]);
+    myFree(temp.objs);
 
     if ( ((StrObj*)(ret->values.objs[0]) )->value.union_mode == NNPSTR_UNIONMODE_BUFFER ){
         logFuncEnds(FUNCTION_CALLS, "finish cast ListObj from NumObj, value at index 0: %s\n", ( (StrObj*)(ret->values.objs[0]) )->value.string.buffer );

@@ -25,7 +25,7 @@ BuiltMethodsStruct datatypeMethods = BUILT_METHODS_STRUCT_NULL;
 DatatypeObj* constructDatatypeObj(Datatype_e value){
     logFuncStart(FUNCTION_CALLS, "start con DatatypeObj: %d\n", value);
 
-    DatatypeObj* ret = malloc(sizeof(DatatypeObj));
+    DatatypeObj* ret = myMalloc(sizeof(DatatypeObj));
     assert(ret && "Malloc a new datatype fail");
 
     ret->operators = &datatypeOperators;
@@ -60,15 +60,15 @@ static ListObj* castList(object_p op){
     ObjArray temp = {
         .capacity = DEFAULT_OBJ_ARRAY_CAPACITY,
         .length = 1,
-        .objs = malloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
+        .objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
     };
     assert(temp.objs && "cast DatatypeObj to ListObj");
 
     temp.objs[0] = copyObj(op);
     
     ListObj* ret = constructListObj(&temp);
-    free(temp.objs[0]);
-    free(temp.objs);
+    myFree(temp.objs[0]);
+    myFree(temp.objs);
 
     logFuncEnds(FUNCTION_CALLS, "finish cast ListObj from DatatypeObj, value at index 0: %u\n", ( (DatatypeObj*)(ret->values.objs[0]) )->value );
     return ret;

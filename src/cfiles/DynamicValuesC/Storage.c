@@ -18,8 +18,8 @@ void appendStorage(Storage* p_store, const object_p obj, const NnpStr* name){
     assert(p_store && obj && name && "append storage");
     if (p_store->length == p_store->capacity){
         p_store->capacity *= 2;
-        p_store->objs = realloc(p_store->objs, sizeof(object_p) * p_store->capacity);
-        p_store->identifiers = realloc(p_store->identifiers, sizeof(NnpStr) * p_store->capacity);
+        p_store->objs = myRealloc(p_store->objs, sizeof(object_p) * p_store->capacity);
+        p_store->identifiers = myRealloc(p_store->identifiers, sizeof(NnpStr) * p_store->capacity);
         assert(p_store->objs && p_store->identifiers && "realloc append storage");
     }
     p_store->objs[p_store->length] = copyObj(obj);
@@ -62,10 +62,10 @@ void freeStorage(Storage* p_store){
         freeObj( p_store->objs[i] );
         freeNnpStr( &(p_store->identifiers[i]) );
     }
-    free(p_store->objs);
-    free(p_store->identifiers);
+    myFree(p_store->objs);
+    myFree(p_store->identifiers);
 
-    free(p_store);
+    myFree(p_store);
 }
 
 

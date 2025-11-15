@@ -11,14 +11,14 @@ TokenTyper tok_types = {
 void initTok_types(int initial_size){
     assert(tok_types.size == 0 && tok_types.types == NULL && initial_size > 0);
     tok_types.size = initial_size;
-    tok_types.types = malloc(sizeof(enum Token_Types_e) * initial_size);
+    tok_types.types = myMalloc(sizeof(enum Token_Types_e) * initial_size);
     assert(tok_types.types);
 }
 
 
 void freeTok_types(){
     assert(tok_types.size != 0 && tok_types.size);
-    free(tok_types.types);
+    myFree(tok_types.types);
     tok_types.types = NULL;
 
     tok_types.size = 0;
@@ -42,7 +42,7 @@ void getTok_types(){
         while (nian.tok_ind_len > tok_types.size){
             tok_types.size *= 2;
         }
-        tok_types.types = realloc(tok_types.types, tok_types.size * sizeof(enum Token_Types_e));
+        tok_types.types = myRealloc(tok_types.types, tok_types.size * sizeof(enum Token_Types_e));
         assert(tok_types.types);
     }
 

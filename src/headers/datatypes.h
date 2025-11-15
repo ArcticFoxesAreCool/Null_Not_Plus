@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdarg.h>
-
+#include <float.h>
 
 
 
@@ -64,6 +64,10 @@
 #include "FileExecutionH/VariableAssignment.h"
 #include "FileExecutionH/ExecutionManager.h"
 
+
+
+
+#include "TestingH/MemoryAllocationTracking.h"
 
 // struct _FuncObj_t {
 //     Datatype_e type;

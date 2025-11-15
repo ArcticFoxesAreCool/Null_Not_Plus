@@ -7,7 +7,7 @@ void objArrFuncsTest(){
     ObjArray arr = {
         .capacity = 32,
         .length = 22,
-        .objs = malloc(32 * sizeof(object_p))
+        .objs = myMalloc(32 * sizeof(object_p))
     };
     assert(arr.objs);
 
@@ -19,10 +19,11 @@ void objArrFuncsTest(){
         freeObj(temp);
     }
 
-    char st[OBJ_PRINTING_CHAR_SIZE];
+    char* st;
     for(uint i = 0; i < arr.length; i++){
-        objValtoStr(st, arr.objs[i]);
+        st = objValtoDynAllocStr(arr.objs[i]);
         printf("arr[%u]: %s\n", i, st);
+        myFree(st);
     }
     
 
@@ -31,7 +32,7 @@ void objArrFuncsTest(){
     for(uint i = 0; i < arr.length; i++){
         freeObj(arr.objs[i]);
     }
-    free(arr.objs);
+    myFree(arr.objs);
 }
 
 
@@ -103,15 +104,15 @@ void nnpsstrTest(){
 
 void storageFuncsTest(){
 
-    Storage* pstore = malloc(sizeof(Storage));
+    Storage* pstore = myMalloc(sizeof(Storage));
     assert(pstore);
 
     pstore->capacity = 8;
     pstore->length = 3;
-    pstore->objs = malloc(sizeof(object_p) * pstore->capacity);
+    pstore->objs = myMalloc(sizeof(object_p) * pstore->capacity);
     assert(pstore->objs);
 
-    pstore->identifiers = malloc(sizeof(NnpStr) * pstore->capacity);
+    pstore->identifiers = myMalloc(sizeof(NnpStr) * pstore->capacity);
     assert(pstore->identifiers);
 
     int i = 0;
@@ -142,38 +143,32 @@ void storageFuncsTest(){
     // printf("name: %s\n", pstore->identifiers[3].string.buffer);
     
 
-    char st[OBJ_PRINTING_CHAR_SIZE];
+
+    
 
     NnpStr nstr = makeNnpStr("boo");
 
-    // objValtoStr(st, getFromStorage(pstore, &nstr));
-    // puts(st);
-    // freeNnpStr(&nstr);
-
-    // setNnpStr("dat", &nstr);
-
-    // objValtoStr(st, getFromStorage(pstore, &nstr));
-    // puts(st);
-    // freeNnpStr(&nstr);
+    
 
     setNnpStr("pie", &nstr);
-    objValtoStr(st, getFromStorage(pstore, &nstr));
+    char* st = objValtoDynAllocStr(getFromStorage(pstore, &nstr));
     puts(st);
+    myFree(st);
     // freeNnpStr(&nstr);
 
     removeStorage(pstore, &nstr);
     printf("%u, %s\n", pstore->length, pstore->identifiers[2].string.buffer);
     
-    // objValtoStr(st, getFromStorage(pstore, &nstr));
-    // puts(st);
+    
 
 
 
 
     setNnpStr("thread", &nstr);
 
-    objValtoStr(st, getFromStorage(pstore, &nstr));
+    objValtoDynAllocStr(getFromStorage(pstore, &nstr));
     puts(st);
+    myFree(st);
 
     freeNnpStr(&nstr);
 

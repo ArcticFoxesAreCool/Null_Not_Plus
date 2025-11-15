@@ -1,0 +1,3 @@
+asciiToCh! <- 10 -> \n
+speak! <- \n + "Hello World!" + \n + \n
+

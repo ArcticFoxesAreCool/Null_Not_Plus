@@ -200,12 +200,12 @@ void condenseObjsAndOperators(ObjArray* obj_line_stack){
     // ObjArray temp_stack = {
     //     .capacity = nian.tok_ind_len,
     //     .length = 0,
-    //     .objs = malloc(sizeof(object_p) * nian.tok_ind_len)
+    //     .objs = myMalloc(sizeof(object_p) * nian.tok_ind_len)
     // };
     // assert(temp_stack.objs);
     if (obj_line_stack->objs == NULL){
         obj_line_stack->capacity = 16;
-        obj_line_stack->objs = malloc(sizeof(object_p) * obj_line_stack->capacity);
+        obj_line_stack->objs = myMalloc(sizeof(object_p) * obj_line_stack->capacity);
         assert(obj_line_stack->objs);
     }
 
@@ -265,7 +265,7 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
         appendInObjArray(p_temp_stack, obj);
         // if (p_temp_stack->capacity == p_temp_stack->length){
         //     p_temp_stack->capacity *= 2;
-        //     p_temp_stack->objs = realloc( p_temp_stack->objs, sizeof(object_p) * p_temp_stack->capacity);
+        //     p_temp_stack->objs = myRealloc( p_temp_stack->objs, sizeof(object_p) * p_temp_stack->capacity);
         //     assert(p_temp_stack->objs && "grow obj arr fail");
         // }
 

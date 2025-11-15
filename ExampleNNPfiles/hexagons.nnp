@@ -1,4 +1,4 @@
-asciiToCh! <- 10 -> newline
+asciiToCh! <- 10 -> \n
 
 2.59807621 -> hexagonal_constant
 
@@ -6,4 +6,4 @@ speak! <- "Enter hexagon side length:   "
 listen! <- ~-> NumObj -> input
 input * input * hexagonal_constant ~-> StrObj -> area_str
 
-speak! <- newline + "Your area is... " + area_str + "!" + newline
+speak! <- \n + "Your area is... " + area_str + "!" + \n

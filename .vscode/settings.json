@@ -7,7 +7,13 @@
         "testmethods.h": "c",
         "testobjs.h": "c",
         "datatypeenum.h": "c",
-        "testfunctioncall.h": "c"
+        "testfunctioncall.h": "c",
+        "strobj.h": "c",
+        "listobj.h": "c",
+        "boolobj.h": "c",
+        "datatypeobj.h": "c",
+        "memoryallocationtracking.h": "c",
+        "storage.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

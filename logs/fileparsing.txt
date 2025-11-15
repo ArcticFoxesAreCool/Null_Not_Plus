@@ -1,7 +1,7 @@
-NNP File from path: ./ExampleNNPfiles/executeWholeFile.nnp, has been found and opened.
-Line Read: asciiToCh! <- 10 -> newline
+NNP File from path: ./ExampleNNPfiles/HelloWorld.nnp, has been found and opened.
+Line Read: asciiToCh! <- 10 -> \n
 
-   token[0]: 'asciiToCh!'   token[1]: '<-'   token[2]: '10'   token[3]: '->'   token[4]: 'newline'
+   token[0]: 'asciiToCh!'   token[1]: '<-'   token[2]: '10'   token[3]: '->'   token[4]: '\n'
 Begin Tokenization Type Detetction
 Token[0]: 'asciiToCh!'
 	Variable
@@ -11,95 +11,36 @@ Token[2]: '10'
 	Value
 Token[3]: '->'
 	Operator
-Token[4]: 'newline'
+Token[4]: '\n'
 	Variable
-Line Read: 
 
-Line Read: 2.59807621 -> hexagonal_constant
 
-   token[0]: '2.59807621'   token[1]: '->'   token[2]: 'hexagonal_constant'
-Begin Tokenization Type Detetction
-Token[0]: '2.59807621'
-	Value
-Token[1]: '->'
-	Operator
-Token[2]: 'hexagonal_constant'
-	Variable
-Line Read: 
+Line Read: speak! <- \n + "Hello World!" + \n + \n
 
-Line Read: speak! <- "Enter hexagon side length:   "
-
-   token[0]: 'speak!'   token[1]: '<-'   token[2]: '"Enter hexagon side length:   "'
+   token[0]: 'speak!'   token[1]: '<-'   token[2]: '\n'   token[3]: '+'   token[4]: '"Hello World!"'   token[5]: '+'   token[6]: '\n'   token[7]: '+'   token[8]: '\n'
 Begin Tokenization Type Detetction
 Token[0]: 'speak!'
 	Variable
 Token[1]: '<-'
 	Operator
-Token[2]: '"Enter hexagon side length:   "'
-	Value
-Line Read: listen! <- ~-> NumObj -> input
-
-   token[0]: 'listen!'   token[1]: '<-'   token[2]: '~->'   token[3]: 'NumObj'   token[4]: '->'   token[5]: 'input'
-Begin Tokenization Type Detetction
-Token[0]: 'listen!'
-	Variable
-Token[1]: '<-'
-	Operator
-Token[2]: '~->'
-	Operator
-Token[3]: 'NumObj'
-	Value
-Token[4]: '->'
-	Operator
-Token[5]: 'input'
-	Variable
-Line Read: input * input * hexagonal_constant ~-> StrObj -> area_str
-
-   token[0]: 'input'   token[1]: '*'   token[2]: 'input'   token[3]: '*'   token[4]: 'hexagonal_constant'   token[5]: '~->'   token[6]: 'StrObj'   token[7]: '->'   token[8]: 'area_str'
-Begin Tokenization Type Detetction
-Token[0]: 'input'
-	Variable
-Token[1]: '*'
-	Operator
-Token[2]: 'input'
-	Variable
-Token[3]: '*'
-	Operator
-Token[4]: 'hexagonal_constant'
-	Variable
-Token[5]: '~->'
-	Operator
-Token[6]: 'StrObj'
-	Value
-Token[7]: '->'
-	Operator
-Token[8]: 'area_str'
-	Variable
-Line Read: 
-
-Line Read: speak! <- newline + "Your area is... " + area_str + "!" + newline
-   token[0]: 'speak!'   token[1]: '<-'   token[2]: 'newline'   token[3]: '+'   token[4]: '"Your area is... "'   token[5]: '+'   token[6]: 'area_str'   token[7]: '+'   token[8]: '"!"'   token[9]: '+'   token[10]: 'newline'
-Begin Tokenization Type Detetction
-Token[0]: 'speak!'
-	Variable
-Token[1]: '<-'
-	Operator
-Token[2]: 'newline'
+Token[2]: '\n'
 	Variable
 Token[3]: '+'
 	Operator
-Token[4]: '"Your area is... "'
+Token[4]: '"Hello World!"'
 	Value
 Token[5]: '+'
 	Operator
-Token[6]: 'area_str'
+Token[6]: '\n'
 	Variable
 Token[7]: '+'
 	Operator
-Token[8]: '"!"'
-	Value
-Token[9]: '+'
-	Operator
-Token[10]: 'newline'
+Token[8]: '\n'
 	Variable
+
+
+Line Read: 
+
+
+
 NNP File has been closed.

@@ -7,5 +7,6 @@ void initBigStorage(int size);
 
 void deepFreeBigStorage();
 
+void endOfLineLogging();
 
 #endif

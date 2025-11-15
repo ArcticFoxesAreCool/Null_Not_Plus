@@ -59,8 +59,8 @@ void closeFile(){
 void initReader(int size, int token_indicies_capacity){
     assert(size > 0 && token_indicies_capacity > 0);
 
-    nian.charv = malloc(size);
-    nian.token_indexes = malloc(token_indicies_capacity * sizeof(int));
+    nian.charv = myMalloc(size);
+    nian.token_indexes = myMalloc(token_indicies_capacity * sizeof(int));
 
     assert(nian.charv && nian.token_indexes);
 
@@ -83,7 +83,7 @@ uint8_t readLine(){//returns 0 if eof read
     
 
     while (strnChOccur(nian.charv, nian.sz, '\n') == NULL  && !(feof(nnp_code)) ){
-        nian.charv = realloc(nian.charv, nian.sz * 2);
+        nian.charv = myRealloc(nian.charv, nian.sz * 2);
         assert(nian.charv);
 
         fgets(nian.charv + nian.sz - 1, nian.sz + 1, nnp_code);
@@ -99,8 +99,8 @@ void freeReader(){
 
     assert(nian.charv && nian.token_indexes && "double free attempt on nian");
     
-    free(nian.charv);
-    free(nian.token_indexes);
+    myFree(nian.charv);
+    myFree(nian.token_indexes);
 
     nian.charv = NULL;
     nian.token_indexes = NULL;
@@ -151,7 +151,7 @@ void tokenTime(){
 
             if (nian.tok_ind_capacity == nian.tok_ind_len){
                 nian.tok_ind_capacity *= 2;
-                nian.token_indexes = realloc(nian.token_indexes, sizeof(int) * nian.tok_ind_capacity);
+                nian.token_indexes = myRealloc(nian.token_indexes, sizeof(int) * nian.tok_ind_capacity);
                 assert(nian.token_indexes);
             }
             // if (nian.token_indexes[nian.tok_ind_len + 1] )

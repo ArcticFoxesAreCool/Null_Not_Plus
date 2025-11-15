@@ -63,7 +63,7 @@ ListObj* constructListObj(const ObjArray* value){
     logFuncStart(FUNCTION_CALLS, "start con ListObj\n");
     assert(value && "construct list obj");
     
-    ListObj* ret = malloc(sizeof(ListObj));
+    ListObj* ret = myMalloc(sizeof(ListObj));
     assert(ret && "malloc a ListObj during construction");
     ret->operators = &listOperators;
     ret->methods = &listMethods;
@@ -71,7 +71,7 @@ ListObj* constructListObj(const ObjArray* value){
 
     ret->values.capacity = value->capacity;
     ret->values.length = value->length;
-    ret->values.objs = malloc(sizeof(object_p) * value->capacity);
+    ret->values.objs = myMalloc(sizeof(object_p) * value->capacity);
     assert(ret->values.objs && "new list size construction");
 
     for(uint i = 0; i < value->length; i++){
@@ -96,7 +96,7 @@ static object_p addBool(object_p op1, BoolObj* op2){
     ListObj* ret = copyObj(op1);
     if (ret->values.length == ret->values.capacity){
         ret->values.capacity *= 2;
-        ret->values.objs = realloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
+        ret->values.objs = myRealloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
         assert(ret->values.objs && "add BoolObj to ListObj realloc fail");
     }
     ret->values.objs[ ret->values.length ] = copyObj(op2);
@@ -112,7 +112,7 @@ static object_p addDatatype(object_p op1, DatatypeObj* op2){
     ListObj* ret = copyObj(op1);
     if (ret->values.length == ret->values.capacity){
         ret->values.capacity *= 2;
-        ret->values.objs = realloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
+        ret->values.objs = myRealloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
         assert(ret->values.objs && "add DatatypeObj to ListObj realloc fail");
     }
     ret->values.objs[ ret->values.length ] = copyObj(op2);
@@ -128,7 +128,7 @@ static object_p addList(object_p op1, ListObj* op2){
     ListObj* ret = copyObj(op1);
     if (ret->values.length == ret->values.capacity){
         ret->values.capacity *= 2;
-        ret->values.objs = realloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
+        ret->values.objs = myRealloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
         assert(ret->values.objs && "add ListObj to ListObj realloc fail");
     }
     ret->values.objs[ ret->values.length ] = copyObj(op2);
@@ -144,7 +144,7 @@ static object_p addNum(object_p op1, NumObj* op2){
     ListObj* ret = copyObj(op1);
     if (ret->values.length == ret->values.capacity){
         ret->values.capacity *= 2;
-        ret->values.objs = realloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
+        ret->values.objs = myRealloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
         assert(ret->values.objs && "add NumObj to ListObj realloc fail");
     }
     ret->values.objs[ ret->values.length ] = copyObj(op2);
@@ -161,7 +161,7 @@ static object_p addStr(object_p op1, StrObj* op2){
     ListObj* ret = copyObj(op1);
     if (ret->values.length == ret->values.capacity){
         ret->values.capacity *= 2;
-        ret->values.objs = realloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
+        ret->values.objs = myRealloc(ret->values.objs, sizeof(object_p) * ret->values.capacity);
         assert(ret->values.objs && "add StrObj to ListObj realloc fail");
     }
     ret->values.objs[ ret->values.length ] = copyObj(op2);
@@ -205,10 +205,21 @@ static NumObj* castNum(object_p op){
 
 static StrObj* castStr(object_p op){
     logFuncStart(FUNCTION_CALLS, "start cast StrObj from ListObj\n");
-    char buffer[64];
-    snprintf(buffer, sizeof(buffer), "ListObj(length = %u, capacity = %u)", ((ListObj*)op)->values.length, ((ListObj*)op)->values.capacity);
-    StrObj* ret = constructStrObj_char(buffer);
-    logFuncEnds(FUNCTION_CALLS, "finish cast StrObj from ListObj: %s\n", ret->value.string.dyn_str);
+
+    // puts("AAAAAA"); fflush(stdout);
+
+    char* st = objValtoDynAllocStr(op);
+    assert(st);
+    // puts("BBBBBB"); fflush(stdout);
+    
+    StrObj* ret = constructStrObj_char(st);
+    myFree(st);
+    
+    if (ret->value.union_mode == NNPSTR_UNIONMODE_BUFFER){
+        logFuncEnds(FUNCTION_CALLS, "finish cast StrObj from ListObj: %s\n", ret->value.string.buffer);
+    } else {
+        logFuncEnds(FUNCTION_CALLS, "finish cast StrObj from ListObj: %s\n", ret->value.string.dyn_str);
+    }
     return ret;
 }
 
@@ -384,8 +395,8 @@ static void* big_clear(ListObj* lst){
     lst->values.length = 0;
 
     lst->values.capacity = DEFAULT_OBJ_ARRAY_CAPACITY;
-    free(lst->values.objs);
-    lst->values.objs = malloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY);
+    myFree(lst->values.objs);
+    lst->values.objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY);
     assert(lst->values.objs);
 
     logFuncEnds(FUNCTION_CALLS, "finish clear method ListObj\n");
@@ -496,7 +507,7 @@ static void* insert_obj(ListObj* lst, object_p obj, NumObj* index){
 
     if (lst->values.length == lst->values.capacity){
         lst->values.capacity *= 2;
-        lst->values.objs = realloc(lst->values.objs, sizeof(object_p) * lst->values.capacity);
+        lst->values.objs = myRealloc(lst->values.objs, sizeof(object_p) * lst->values.capacity);
         assert(lst->values.objs);
     }
     if (the_index != lst->values.length){

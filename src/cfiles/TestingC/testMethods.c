@@ -97,7 +97,7 @@ void testListMethods(){
     ObjArray temp = {
         .capacity = 32,
         .length = 22,
-        .objs = malloc(32 * sizeof(object_p))
+        .objs = myMalloc(32 * sizeof(object_p))
     };
     assert(temp.objs);
     constructObjsTest(temp.objs);
@@ -107,12 +107,12 @@ void testListMethods(){
     
     ListObj* lst = constructListObj(&temp);
     for(uint i = 0; i < temp.length; i++){
-        free(temp.objs[i]);
+        myFree(temp.objs[i]);
     }
-    free(temp.objs);
+    myFree(temp.objs);
     
 
-    char st[OBJ_PRINTING_CHAR_SIZE];
+    char* st;
 
     object_p a[] = {
         constructBoolObj(false),
@@ -130,8 +130,9 @@ void testListMethods(){
     for(unsigned long i = 0; i < sizeof(a) / sizeof(object_p); i++){
         NumObj* l = lst->methods->find(lst, a[i]);
 
-        objValtoStr(st, a[i]);
+        st = objValtoDynAllocStr(a[i]);
         printf("\n[%.4lf]:: %s", l->value, st);
+        myFree(st);
 
         freeObj(l);
         freeObj(a[i]);
@@ -152,8 +153,9 @@ void testListMethods(){
 
 
     for(uint i = 0; i < lst->values.length; i++){
-        objValtoStr(st, lst->values.objs[i]);
+        st = objValtoDynAllocStr(lst->values.objs[i]);
         printf("list[%d] = %s\n", i, st);
+        myFree(st);
     }
 
 

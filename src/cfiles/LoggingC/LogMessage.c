@@ -199,3 +199,26 @@ void flushLogs(){
     if (fileParseActive)
         fflush(fileParse);
 }
+
+
+void logVariables(enum LoggingFileType whichFile, Storage* p_store, bool printPrebuiltFuncs){
+    logMessage(whichFile, "Local Variables:\n");
+    char* st;
+
+    uint i;
+    if (printPrebuiltFuncs){
+        i = 0;
+    } else {
+        i = NUM_PREBUILTS_IDENTIFIERS;
+    }
+    for (; i < p_store->length; i++){
+        if (p_store->identifiers[i].union_mode == NNPSTR_UNIONMODE_BUFFER){
+            logMessage(whichFile, "\t%s : ", p_store->identifiers[i].string.buffer);
+        } else {
+            logMessage(whichFile, "\t%s : ", p_store->identifiers[i].string.dyn_str);
+        }
+        st = objValtoDynAllocStr(p_store->objs[i]);
+        logMessage(whichFile, "%s\n", st);
+        myFree(st);
+    }
+}

@@ -16,90 +16,55 @@ start con StrObj:
 
 finish con StrObj: 
 
-start con NumObj: 2.598076
-finish con NumObj: 2.598076
-start con StrObj: Enter hexagon side length:   
-finish con StrObj: Enter hexagon side length:   
-start con StrObj: Enter hexagon side length:   
-finish con StrObj: Enter hexagon side length:   
-start con StrObj: -2
+Finished line 1
 
-finish con StrObj: -2
-
-start con StrObj: -2
-
-finish con StrObj: -2
-
-start con DatatypeObj: 0
-finish con DatatypeObj: 0
-start cast NumObj from StrObj
-	start con NumObj: -2.000000
-	finish con NumObj: -2.000000
-finish cast NumObj from StrObj: -2.000000
-start mult NumObj to NumObj
-	start con NumObj: 4.000000
-	finish con NumObj: 4.000000
-finish mult NumObj to NumObj: 4.000000
-start mult NumObj to NumObj
-	start con NumObj: 10.392305
-	finish con NumObj: 10.392305
-finish mult NumObj to NumObj: 10.392305
-start con DatatypeObj: 2
-finish con DatatypeObj: 2
-start cast StrObj from NumObj
-	start con StrObj: 10.392305
-	finish con StrObj: 10.392305
-finish cast NumObj to StrObj dyn: 10.392305
-start con StrObj: 10.392305
-finish con StrObj: 10.392305
-start con StrObj: 10.392305
-finish con StrObj: 10.392305
 start con StrObj: 
 
 finish con StrObj: 
 
-start con StrObj: Your area is... 
-finish con StrObj: Your area is... 
-start con StrObj: Your area is... 
-finish con StrObj: Your area is... 
+start con StrObj: Hello World!
+finish con StrObj: Hello World!
+start con StrObj: Hello World!
+finish con StrObj: Hello World!
 start add StrObj to StrObj
 	start con StrObj: 
-Your area is... 
+Hello World!
 	finish con StrObj: 
-Your area is... 
+Hello World!
 finish add StrObj to StrObj: 
-Your area is... 
-start con StrObj: 10.392305
-finish con StrObj: 10.392305
-start add StrObj to StrObj
-	start con StrObj: 
-Your area is... 10.392305
-	finish con StrObj: 
-Your area is... 10.392305
-finish add StrObj to StrObj: 
-Your area is... 10.392305
-start con StrObj: !
-finish con StrObj: !
-start con StrObj: !
-finish con StrObj: !
-start add StrObj to StrObj
-	start con StrObj: 
-Your area is... 10.392305!
-	finish con StrObj: 
-Your area is... 10.392305!
-finish add StrObj to StrObj: 
-Your area is... 10.392305!
+Hello World!
 start con StrObj: 
 
 finish con StrObj: 
 
 start add StrObj to StrObj
 	start con StrObj: 
-Your area is... 10.392305!
+Hello World!
 
 	finish con StrObj: 
-Your area is... 10.392305!
+Hello World!
 
 finish add StrObj to StrObj: 
-Your area is... 10.392305!
+Hello World!
+
+start con StrObj: 
+
+finish con StrObj: 
+
+start add StrObj to StrObj
+	start con StrObj: 
+Hello World!
+
+
+	finish con StrObj: 
+Hello World!
+
+
+finish add StrObj to StrObj: 
+Hello World!
+
+
+Finished line 2
+
+Finished line 3
 

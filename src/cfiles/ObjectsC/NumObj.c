@@ -58,7 +58,7 @@ BuiltMethodsStruct numMethods = {
 NumObj* constructNumObj(double value){
     logFuncStart(FUNCTION_CALLS, "start con NumObj: %lf\n", value);
 
-    NumObj* ret = malloc(sizeof(NumObj));
+    NumObj* ret = myMalloc(sizeof(NumObj));
     assert(ret && "Malloc a new num fail\n");
 
     ret->operators = &numOperators;
@@ -252,10 +252,6 @@ static NumObj* castNum(object_p op){
     return ret;
 }
 
-// StrObj* castStr(NumObj* op){
-//     StrObj* ret = malloc(sizeof(StrObj));
-
-// }
 
 static BoolObj* castBool(object_p op){
     uint8_t is_not_zero = fabs( ((NumObj*)op)->value  ) > 2 * __DBL_EPSILON__;
@@ -277,13 +273,13 @@ static ListObj* castList(object_p op){
     ObjArray temp = {
         .capacity = DEFAULT_OBJ_ARRAY_CAPACITY,
         .length = 1,
-        .objs = malloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
+        .objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
     };
     temp.objs[0] = copyObj(op);
     
     ListObj* ret = constructListObj(&temp);
-    free(temp.objs[0]);
-    free(temp.objs);
+    myFree(temp.objs[0]);
+    myFree(temp.objs);
 
     logFuncEnds(FUNCTION_CALLS, "finish cast ListObj from NumObj, value at index 0: %lf\n", ( (NumObj*)(ret->values.objs[0]) )->value );
     return ret;

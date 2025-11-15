@@ -41,7 +41,7 @@ void constructObjsTest(object_p* objArr){
     ObjArray tempBig = {
         .capacity = 32,
         .length = currLen,
-        .objs = malloc(sizeof(object_p) * 32)
+        .objs = myMalloc(sizeof(object_p) * 32)
     };
 
     for(uint j = 0; j < currLen; j++){
@@ -51,7 +51,7 @@ void constructObjsTest(object_p* objArr){
     ObjArray tempEmpty = {
         .capacity = DEFAULT_OBJ_ARRAY_CAPACITY,
         .length = 0,
-        .objs = malloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
+        .objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
     };
 
     ObjArray tempNull = {
@@ -67,9 +67,9 @@ void constructObjsTest(object_p* objArr){
     for(uint j = 0; j < currLen; j++){
         freeObj(tempBig.objs[j]);
     }
-    free(tempBig.objs);
+    myFree(tempBig.objs);
 
-    free(tempEmpty.objs);
+    myFree(tempEmpty.objs);
 }
 
 
@@ -104,7 +104,7 @@ void memLeakTest(int n, int delay){
     ObjArray a = {
         .capacity = 32,
         .length = 22,
-        .objs = malloc(sizeof(object_p) * 32)
+        .objs = myMalloc(sizeof(object_p) * 32)
     };
     assert(a.objs);
     constructObjsTest(a.objs);
@@ -114,7 +114,7 @@ void memLeakTest(int n, int delay){
     for(uint i = 0; i < a.length; i++){
         freeObj(a.objs[i]);
     }
-    free(a.objs);
+    myFree(a.objs);
 
     logMessage(FUNCTION_CALLS, "\n\nMEM LEAK: inital list done\n\n");
 
@@ -122,7 +122,7 @@ void memLeakTest(int n, int delay){
 
         if (lst->values.capacity == lst->values.length){
             lst->values.capacity *= 2;
-            lst->values.objs = realloc(lst->values.objs, sizeof(object_p) * lst->values.capacity);
+            lst->values.objs = myRealloc(lst->values.objs, sizeof(object_p) * lst->values.capacity);
             assert(lst->values.objs);
         }
 

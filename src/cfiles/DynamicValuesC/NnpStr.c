@@ -25,7 +25,7 @@ NnpStr makeNnpStr(const char* str){
 void setNnpStr(const char* str, NnpStr* p_nnpStr){
     assert(str && p_nnpStr);
     if (p_nnpStr->union_mode == NNPSTR_UNIONMODE_POINTER){
-        free(p_nnpStr->string.dyn_str);
+        myFree(p_nnpStr->string.dyn_str);
     }
 
     if (strlen(str) <= STRING_U_BUFFER_NUM_CHARS){
@@ -33,7 +33,7 @@ void setNnpStr(const char* str, NnpStr* p_nnpStr){
         strncpy(p_nnpStr->string.buffer, str, STRING_U_BUFFER_SIZE);
     } else {
         p_nnpStr->union_mode = NNPSTR_UNIONMODE_POINTER;
-        p_nnpStr->string.dyn_str = malloc(strlen(str) + 1);
+        p_nnpStr->string.dyn_str = myMalloc(strlen(str) + 1);
         assert(p_nnpStr->string.dyn_str);
         strncpy(p_nnpStr->string.dyn_str, str, strlen(str) + 1);
     }
@@ -46,7 +46,7 @@ void freeNnpStr(NnpStr* p_nnpStr){
         return;
     }
 
-    free(p_nnpStr->string.dyn_str);
+    myFree(p_nnpStr->string.dyn_str);
 
     p_nnpStr->union_mode = NNPSTR_UNIONMODE_BUFFER;
     p_nnpStr->string.buffer[0] = '\0';

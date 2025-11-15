@@ -4,9 +4,9 @@
 //     SPEAK, LISTEN
 
 
-#define NUM_PREBUILTS_IDENTIFIERS 10
 
-const char* prebuilts_identifiers[] = {
+
+const char* prebuilts_identifiers[NUM_PREBUILTS_IDENTIFIERS] = {
     "truncate!",
     "strLen!",
     "substring!",

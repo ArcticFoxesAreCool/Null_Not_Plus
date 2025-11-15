@@ -32,7 +32,7 @@ BuiltMethodsStruct boolMethods = BUILT_METHODS_STRUCT_NULL;
 BoolObj* constructBoolObj(uint8_t value){
     logFuncStart(FUNCTION_CALLS, "start con BoolObj: %u\n", value);
 
-    BoolObj* ret = malloc(sizeof(BoolObj));
+    BoolObj* ret = myMalloc(sizeof(BoolObj));
     assert(ret && "Malloc construct BoolObj fail");
 
     ret->operators = &boolOperators;
@@ -66,15 +66,15 @@ static ListObj* castList(object_p op){
     ObjArray temp = {
         .capacity = DEFAULT_OBJ_ARRAY_CAPACITY,
         .length = 1,
-        .objs = malloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
+        .objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)
     };
     assert(temp.objs && "cast BoolObj to ListObj");
 
     temp.objs[0] = copyObj(op);
     
     ListObj* ret = constructListObj(&temp);
-    free(temp.objs[0]);
-    free(temp.objs);
+    myFree(temp.objs[0]);
+    myFree(temp.objs);
 
     logFuncEnds(FUNCTION_CALLS, "finish cast ListObj from BoolObj, value at index 0: %u\n", ( (BoolObj*)(ret->values.objs[0]) )->value );
     return ret;

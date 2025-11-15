@@ -21,7 +21,8 @@ struct _ObjArray{
 
 
 #define OBJ_PRINTING_CHAR_SIZE 64
-void objValtoStr(char* dst, object_p obj);
+
+char* objValtoDynAllocStr(object_p obj);
 
 object_p copyObj(const object_p this_obj);
 

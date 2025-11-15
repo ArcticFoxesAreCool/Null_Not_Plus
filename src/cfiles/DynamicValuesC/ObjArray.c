@@ -11,17 +11,17 @@ object_p copyObj(const object_p this_obj){
 
     switch(dat){
         case NUM_OBJ:
-            ret = malloc(sizeof(NumObj));
+            ret = myMalloc(sizeof(NumObj));
             assert(ret && "malloc a num obj failed while copying obj");
             memcpy(ret, this_obj, sizeof(NumObj));
             return ret;
         case BOOL_OBJ:
-            ret = malloc(sizeof(BoolObj));
+            ret = myMalloc(sizeof(BoolObj));
             assert(ret && "malloc a bool obj failed while copying obj");
             memcpy(ret, this_obj, sizeof(BoolObj));
             return ret;
         case DATATYPE_OBJ:
-            ret = malloc(sizeof(DatatypeObj));
+            ret = myMalloc(sizeof(DatatypeObj));
             assert(ret && "malloc a datatype obj failed while copying obj");
             memcpy(ret, this_obj, sizeof(DatatypeObj));
             return ret;
@@ -37,7 +37,7 @@ object_p copyObj(const object_p this_obj){
             }
 
         case FUNC_OBJ:
-            ret = malloc(sizeof(FuncObj));
+            ret = myMalloc(sizeof(FuncObj));
             assert(ret && "malloc a func obj failed while copying obj");
             memcpy(ret, this_obj, sizeof(FuncObj));
             return ret;
@@ -61,39 +61,35 @@ void freeObj(object_p this_obj){
     switch(dat){
         case STR_OBJ:
 
-            // objValtoStr(testing_printer, this_obj);
-            // printf("String: %s", testing_printer);
+            
 
             if (  ((StrObj*)this_obj)->value.union_mode == NNPSTR_UNIONMODE_POINTER  ){
-                free( ((StrObj*)this_obj)->value.string.dyn_str );
+                myFree( ((StrObj*)this_obj)->value.string.dyn_str );
                 // printf("  Unionmode Pointer");
             }
             // putchar('\n');
 
 
-            free(this_obj);
+            myFree(this_obj);
             break;
         case LIST_OBJ:
             // printf("A\n");fflush(stdout);
             
             for(uint i = 0; i < ((ListObj*)this_obj)->values.length; i++){
-                // objValtoStr(testing_printer, ((ListObj*)this_obj)->values.objs[i] );
-                // printf("List[%u]:\t%s\n\t", i, testing_printer);
-                // printf("WHY %d\n", i);fflush(stdout);
+              
                 freeObj(  ((ListObj*)this_obj)->values.objs[i]  );
             }
             // putchar('\n');
             // printf("B\n");fflush(stdout);
 
-            free(((ListObj*)this_obj)->values.objs);
-            free(this_obj);
+            myFree(((ListObj*)this_obj)->values.objs);
+            myFree(this_obj);
             break;
 
         default:
-            // objValtoStr(testing_printer, this_obj);
-            // printf("Default: %s\n", testing_printer);
+          
 
-            free(this_obj);
+            myFree(this_obj);
     }
 }
 
@@ -102,67 +98,104 @@ void freeObj(object_p this_obj){
 
 
 
-void objValtoStr(char* dst, object_p obj){
+char* objValtoDynAllocStr(object_p obj){
+    char* dst = NULL;
+
     Datatype_e dat = *((Datatype_e*)obj);
     switch (dat){
     case BOOL_OBJ:
+        dst = myMalloc(6); assert(dst);
         if (((BoolObj*)obj)->value != 0){
-            sprintf(dst, "true");
+            sprintf(dst, "True");
         } else {
-            sprintf(dst, "false");
+            sprintf(dst, "False");
         }
-        return;
-    case DATATYPE_OBJ:
-        {
+        break;
+    case DATATYPE_OBJ: {
+
+            dst = myMalloc(16); assert(dst);
             Datatype_e dat_val = ((DatatypeObj*)obj)->value;
             switch (dat_val){
             case BOOL_OBJ:
                 sprintf(dst, "BoolObj");
-                return;
+                break;
             case DATATYPE_OBJ:
                 sprintf(dst, "DatatypeObj");
-                return;
+                break;
             case LIST_OBJ:
                 sprintf(dst, "ListObj");
-                return;
+                break;
             case NUM_OBJ:
                 sprintf(dst, "NumObj");
-                return;
+                break;
             case STR_OBJ:
                 sprintf(dst, "StrObj");
-                return;
+                break;
             case FUNC_OBJ:
                 sprintf(dst, "FuncObj");
-                return;
+                break;
             case CLASS_OBJ:
                 sprintf(dst, "ClassObj");
-                return;
+                break;
             case INSTANCE_OBJ:
                 sprintf(dst, "InstanceObj");
-                return;
+                break;
             default:
-                assert(false && "objValtoStr unkown value");
-                return;
+                puts("objValtoStr unkown value");
+                exit(1);
             }
         }
+        break;
     case NUM_OBJ:
-        sprintf(dst, "%lf", ((NumObj*)obj)->value);
-        return;
+        dst = myMalloc(32); assert(dst);    
+        snprintf(dst, 32, "%lf", ((NumObj*)obj)->value);
+        break;
     case STR_OBJ:
         if (((StrObj*)obj)->value.union_mode == NNPSTR_UNIONMODE_BUFFER){
-            sprintf(dst, "%s", ((StrObj*)obj)->value.string.buffer);
+            dst = myMalloc(STRING_U_BUFFER_SIZE + 2); assert(dst);
+            sprintf(dst, "\"%s\"", ((StrObj*)obj)->value.string.buffer);
         } else {
-            sprintf(dst, "%s", ((StrObj*)obj)->value.string.dyn_str);
+            dst = myMalloc(strlen(((StrObj*)obj)->value.string.dyn_str) + 3); assert(dst);
+            sprintf(dst, "\"%s\"", ((StrObj*)obj)->value.string.dyn_str);
         }
-        return;
-    case LIST_OBJ:
-        sprintf(dst, "ListObj.len = %u", ((ListObj*)obj)->values.length);
-        return;
-    
+        break;
+    case LIST_OBJ: {
+        uint capacity = 64;
+        size_t dst_len = 3;
+
+        char* tmp_val;
+        size_t tmp_len;
+
+        dst = myMalloc(capacity); assert(dst);
+        sprintf(dst, "[ ");
+        for(uint i = 0; i < ((ListObj*)obj)->values.length; i++){
+            tmp_val = objValtoDynAllocStr(((ListObj*)obj)->values.objs[i]);
+            tmp_len = strlen(tmp_val);
+
+            if (tmp_len + dst_len + 3 > capacity){
+                do { capacity *= 2; } while (tmp_len + dst_len + 3 > capacity);
+                dst = myRealloc(dst, capacity); assert(dst);
+            }
+            strcat(dst, tmp_val);
+            myFree(tmp_val);
+
+            strcat(dst, " ");
+            dst_len += tmp_len + 1;
+        }
+        strcat(dst, "]");
+        }
+        break;
+    case FUNC_OBJ: 
+        dst = myMalloc(32); assert(dst);
+        sprintf(dst, "FuncObj(Argc = %d)", ((FuncObj*)obj)->num_args);
+        break;
     default:
-        // printf("\n\n%d\n", dat);fflush(stdout);
-        assert(false && "ObjValtoStr obj datatype not found");
+        // printf("dat: %d\n", dat);
+        puts("ObjValtoStr obj datatype not found");
+        exit(1);
     }
+
+    return dst;
 }
 
 
@@ -176,7 +209,7 @@ void objValtoStr(char* dst, object_p obj){
 void appendInObjArray(ObjArray* p_obj_arr, const object_p this_obj){
     if (p_obj_arr->capacity == p_obj_arr->length){
         p_obj_arr->capacity *= 2;
-        p_obj_arr->objs = realloc( p_obj_arr->objs, sizeof(object_p) * p_obj_arr->capacity);
+        p_obj_arr->objs = myRealloc( p_obj_arr->objs, sizeof(object_p) * p_obj_arr->capacity);
         assert(p_obj_arr->objs && "grow obj arr fail");
 
     }
@@ -201,7 +234,7 @@ void freeObjArrayEntries(ObjArray* p_obj_arr){
         freeObj(  p_obj_arr->objs[i]  );
         p_obj_arr->objs[i] = NULL;
     }
-    // free(p_obj_arr->objs);
+    // myFree(p_obj_arr->objs);
 }
 
 
@@ -209,7 +242,7 @@ void insertInObjArray(ObjArray* p_obj_arr, const object_p this_obj, uint index){
     assert(p_obj_arr && this_obj && "insert into obj arr");
     if (p_obj_arr->length == p_obj_arr->capacity){
         p_obj_arr->capacity *= 2;
-        p_obj_arr->objs = realloc(p_obj_arr->objs, sizeof(object_p) * p_obj_arr->capacity );
+        p_obj_arr->objs = myRealloc(p_obj_arr->objs, sizeof(object_p) * p_obj_arr->capacity );
         assert(p_obj_arr->objs && "realloc obj arr insert");
     }
     if (index > p_obj_arr->length){ puts("insert out of bounds"); exit(1);}
