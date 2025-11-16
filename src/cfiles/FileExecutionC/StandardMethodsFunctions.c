@@ -67,6 +67,7 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
             if (strncmp(nian.charv + nian.token_indexes[i], "<-", 3) == 0){
                 setNnpStr(nian.charv + nian.token_indexes[i - 1], &temp_str);
                 temp_func_ref = getFromStorage(p_store, &temp_str);
+                freeNnpStr(&temp_str);
                 if (temp_func_ref->type != FUNC_OBJ){logMessage(FILE_PARSING, "Invalid function call on non-FuncObj\n"); exit(1);}
                 if (temp_func_ref->func_type == USER_FUNC){puts("Have not implemented user-functions yet"); exit(1);}
 
@@ -187,6 +188,7 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         p_obj_arr->objs[p_obj_arr->length - 1] = reted;
     } else if (reted) {
         appendInObjArray(p_obj_arr, reted);
+        freeObj(reted);
         // p_obj_arr->objs[p_obj_arr->length] = reted;
     }
 

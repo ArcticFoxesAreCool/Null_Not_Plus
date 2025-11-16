@@ -32,9 +32,10 @@ void executeCode(const char* nnp_path){
         tokenTime();
         getTok_types();
 
-        condenseObjsAndOperators(&line_memory);   
+        condenseObjsAndOperators(&line_memory);
     
         freeNonVarsInObjArr(&line_memory, &big_storage);
+
         endOfLineLogging();
     }
 
@@ -109,6 +110,6 @@ void endOfLineLogging(){
     logMessage(FILE_PARSING, "\n\n");
     logMessage(FUNCTION_CALLS, "Finished line %d\n\n", line_number);
 
-    logVariables(MEMORY_STATE, &big_storage, true);
+    logVariables(MEMORY_STATE, &big_storage, false);
     logMessage(MEMORY_STATE, "Finished line %d\n\n", line_number);
 }

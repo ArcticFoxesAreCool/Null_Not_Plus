@@ -250,6 +250,7 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
 
         assert(obj);
         appendInObjArray(p_temp_stack, obj);
+        freeObj(obj);
         
     } else if (tok_types.types[index] == VARIABLE){
         // printf("DEBUG: %d\n", index);
