@@ -158,6 +158,37 @@ static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatyp
             } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE)){
                 i++;
 
+
+
+                if (tok_types.types[i] == VALUE && strncmp("[", nian.charv + nian.token_indexes[i], 2) == 0){
+
+                    ObjArray temp = {.capacity = DEFAULT_OBJ_ARRAY_CAPACITY, .length = 0, .objs = NULL};
+                    ListObj* empty_list = constructListObj(&temp);
+                    appendInObjArray(p_temp_stack, empty_list);
+                    freeObj(empty_list);
+
+
+                    list_closed_at = getListClosingIndex(i);
+
+                    if (list_closed_at == i + 1){
+                        operationResolution(p_temp_stack, i);
+                        i++; 
+                        continue;
+                    }
+
+                    ListObj* added_list = p_temp_stack->objs[p_temp_stack->length - 1];
+                    subCondenseObjsOperators(&(added_list->values), NULL, i + 1, getListClosingIndex(i) - 1);
+                    operationResolution(p_temp_stack, i);
+                    i = list_closed_at;
+                    continue;
+                }
+
+
+
+
+
+
+
                 addValVarToTempStack(p_temp_stack, datatype_arr, i);
                 // if (strncmp(nian.charv + nian.token_indexes[i], "]", 2) == 0) continue;
 
