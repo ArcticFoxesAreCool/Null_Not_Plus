@@ -23,6 +23,7 @@
 
 
 #include "LoggingH/LogMessage.h"
+#include "LoggingH/MemoryAllocationTracking.h"
 
 // ALL OBJECTS STRUCTURE:
 // 1. datatype enum
@@ -65,9 +66,6 @@
 #include "FileExecutionH/ExecutionManager.h"
 
 
-
-
-#include "TestingH/MemoryAllocationTracking.h"
 
 // struct _FuncObj_t {
 //     Datatype_e type;

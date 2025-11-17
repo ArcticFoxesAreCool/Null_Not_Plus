@@ -8,7 +8,7 @@ extern Storage big_storage;
 
 
 
-static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index);
+void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index);
 
 // functionCalled(p_temp_stack, &i, stop_index);
 void functionCalled(ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
@@ -95,7 +95,7 @@ int getListClosingIndex(int open_bracket_index){
 
 
 
-static void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
+void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
     // only start and stop on value/variables
     // printf("start: %d, stop: %d\n", start_index, stop_index);
     assert(start_index >= 0 && stop_index >= 0 && stop_index >= start_index);
