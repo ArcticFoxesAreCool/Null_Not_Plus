@@ -12,7 +12,9 @@ int line_number = 0;
 
 bool skip_execution = false;
 int no_scope = 0;
-bool if_has_been_triggered = false;
+struct ConditionalTracking conditional_tracker = {0};
+
+
 
 
 static bool checkShouldResumeExecute(enum TypeOfLine line_type);
@@ -27,6 +29,8 @@ void executeCode(const char* nnp_path){
     initReader(READER_INITIAL_SIZE, READER_TOKEN_ARR_INITIAL_CAPACITY);
     initTok_types(INITIAIL_TOKEN_TYPER_SIZE);
     openFile(nnp_path);
+    initConditionalTracker(&conditional_tracker, 8);
+
 
     extern Reader nian;
     extern TokenTyper tok_types;
@@ -53,8 +57,9 @@ void executeCode(const char* nnp_path){
 
         endOfLineLogging();
     }
+    // printf("\nConditionalTracker, length: %d\n", conditional_tracker.length);
 
-    
+    freeConditionalTracker(&conditional_tracker);    
     myFree(line_memory.objs);
     closeFile();
     freeTok_types();
@@ -177,6 +182,7 @@ static bool checkShouldResumeExecute(enum TypeOfLine line_type){
     extern Reader nian;
     extern TokenTyper tok_types;
 
+
     switch(line_type){
     case LINE_LOOP:
         no_scope++;
@@ -188,10 +194,10 @@ static bool checkShouldResumeExecute(enum TypeOfLine line_type){
         if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
             no_scope++;
         } else if (no_scope == 1){
-            if (nian.tok_ind_len == 2 && !if_has_been_triggered && strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
+            if (nian.tok_ind_len == 2 && !(conditional_tracker.data[conditional_tracker.length-1].if_has_been_triggered) && strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
                 no_scope--;
                 return true;
-            } else if (nian.tok_ind_len >= 3 && !if_has_been_triggered && strncmp(nian.charv + nian.token_indexes[1], "if", 3) == 0){
+            } else if (nian.tok_ind_len >= 3 && !(conditional_tracker.data[conditional_tracker.length-1].if_has_been_triggered) && strncmp(nian.charv + nian.token_indexes[1], "if", 3) == 0){
                 no_scope--;
                 return true;
             }
@@ -224,19 +230,19 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
     case LINE_CONDITIONAL:
         assert(nian.tok_ind_len >= 2);
         if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
-            if_has_been_triggered = false;
+            appendToConditionalTracker(&conditional_tracker, (struct ConditionalData){.no_scope_level=no_scope, .if_has_been_triggered=false});
             subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
             if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                 logMessage(OUT, "Error, if's expression does not evaluate to one BoolObj");
                 exit(1);
             } else if (((BoolObj*)(p_line_memory->objs[0]))->value != false){
-                if_has_been_triggered = true;
+                conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered = true;
             } else {
                 no_scope++;
                 skip_execution = true;
             }
         } else if (strncmp(nian.charv + nian.token_indexes[1], "if", 3) == 0){
-            if (if_has_been_triggered){
+            if (conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered){
                 no_scope++;
                 skip_execution = true;
             } else {
@@ -245,13 +251,13 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
                     logMessage(OUT, "Error, no if's expression does not evaluate to one BoolObj");
                     exit(1);
                 } else if (((BoolObj*)(p_line_memory->objs[0]))->value != false){
-                    if_has_been_triggered = true;
+                    conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered = true;
                 } else {
                     no_scope++;
                     skip_execution = true;
                 }
             }
-        } else if (if_has_been_triggered && strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
+        } else if (conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered && strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
             no_scope++;
             skip_execution = true;
         }
@@ -267,8 +273,12 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         puts("Class and Function Declaration unimplemented. Try again in a few weeks");
         exit(1);
         break;
-    case LINE_BLANK:
     case LINE_NO_SCOPE:
+        if (conditional_tracker.data[conditional_tracker.length - 1].no_scope_level == no_scope)
+            // puts(nian.charv + nian.token_indexes[0]);
+            popConditionalTracker(&conditional_tracker);
+        return;
+    case LINE_BLANK:
         return;
     }
 }

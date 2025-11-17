@@ -64,7 +64,7 @@
 #include "FileExecutionH/StandardMethodsFunctions.h"
 #include "FileExecutionH/VariableAssignment.h"
 #include "FileExecutionH/ExecutionManager.h"
-
+#include "FileExecutionH/ConditionalLogic.h"
 
 
 // struct _FuncObj_t {
