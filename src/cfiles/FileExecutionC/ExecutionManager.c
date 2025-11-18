@@ -13,8 +13,9 @@ int line_number = 0;
 bool skip_execution = false;
 int no_scope = 0;
 struct ConditionalTracking conditional_tracker = {0};
-
-
+// extern fpos_t start_of_line_pos;
+long tell = 0;
+struct LoopList loop_list = {0};
 
 
 static bool checkShouldResumeExecute(enum TypeOfLine line_type);
@@ -30,7 +31,9 @@ void executeCode(const char* nnp_path){
     initTok_types(INITIAIL_TOKEN_TYPER_SIZE);
     openFile(nnp_path);
     initConditionalTracker(&conditional_tracker, 8);
+    initLoopList(&loop_list, 4);
 
+    extern FILE* nnp_code;
 
     extern Reader nian;
     extern TokenTyper tok_types;
@@ -41,8 +44,12 @@ void executeCode(const char* nnp_path){
     enum TypeOfLine current_line_type;
     // struct ScopeTracker scope_info = {.execution_level = 0, .no_nest_level = 0};
 
+    uint8_t run = true;
 
-    while (readLine()){
+    while (run){
+        tell = ftell(nnp_code);
+        run = readLine();
+        // printf("tell: %ld\n", tell);
         line_number++;
 
         tokenTime();
@@ -59,6 +66,7 @@ void executeCode(const char* nnp_path){
     }
     // printf("\nConditionalTracker, length: %d\n", conditional_tracker.length);
 
+    freeLoopList(&loop_list);
     freeConditionalTracker(&conditional_tracker);    
     myFree(line_memory.objs);
     closeFile();
@@ -264,8 +272,36 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
 
         break;
     case LINE_LOOP:
-        puts("Loops unimplemented yet");
-        exit(1);
+        assert(nian.tok_ind_len >= 2);
+        subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
+        if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
+            logMessage(OUT, "Error, loop's expression does not evaluate to one BoolObj");
+            exit(1);
+        } else if (((BoolObj*)(p_line_memory->objs[0]))->value != false){
+            if (loop_list.data[loop_list.length - 1].line_number != line_number){
+                appendLoopList(&loop_list, (struct LoopListData){.line_number=line_number, .loop_tell=tell, .no_scope_level=no_scope});
+                loop_list.data[loop_list.length - 1].loop_tell = tell;
+                loop_list.data[loop_list.length - 1].line_number = line_number;
+                loop_list.data[loop_list.length - 1].no_scope_level = no_scope;
+
+                // printf("Loop list len: %d\n\tline number: %d\n\tno scope level: %d\n\tline tell: %ld\n", 
+                // loop_list.length, loop_list.data[loop_list.length-1].line_number, 
+                // loop_list.data[loop_list.length-1].no_scope_level, loop_list.data[loop_list.length-1].loop_tell);
+            }
+
+        } else if (loop_list.length >= 1 && loop_list.data[loop_list.length - 1].line_number == line_number) {
+            skip_execution = true;
+            no_scope++;
+            popLoopList(&loop_list);
+        } else {
+            skip_execution = true;
+            no_scope++;
+            // printf("\nEND\nLoop list len: %d\n\tline number: %d\n\tno scope level: %d\n\tline tell: %ld\n", 
+            //     loop_list.length, loop_list.data[loop_list.length-1].line_number, 
+            //     loop_list.data[loop_list.length-1].no_scope_level, loop_list.data[loop_list.length-1].loop_tell);
+            // exit(1);
+        }
+        
         break;
         
     case LINE_CLASS_DECLARATION:
@@ -274,9 +310,16 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         exit(1);
         break;
     case LINE_NO_SCOPE:
-        if (conditional_tracker.data[conditional_tracker.length - 1].no_scope_level == no_scope)
+        // puts("Got here?");
+        if (conditional_tracker.length >= 1 && conditional_tracker.data[conditional_tracker.length - 1].no_scope_level == no_scope)
             // puts(nian.charv + nian.token_indexes[0]);
             popConditionalTracker(&conditional_tracker);
+        if (loop_list.length >= 1 && loop_list.data[loop_list.length - 1].no_scope_level == no_scope){
+            // printf("loop_list tell: %ld\n", loop_list.data[loop_list.length - 1].loop_tell);
+            line_number = loop_list.data[loop_list.length - 1].line_number - 1;
+            gotoCurrentLoop(&loop_list);
+
+        }
         return;
     case LINE_BLANK:
         return;

@@ -71,11 +71,12 @@ void initReader(int size, int token_indicies_capacity){
 
 
 
-
-
+// fpos_t start_of_line_pos = {0};
 
 uint8_t readLine(){//returns 0 if eof read
     assert(nian.charv && nnp_code);
+    // fgetpos(nnp_code, &start_of_line_pos);
+    // tell = ftell(nnp_code);
 
     if ( !(fgets(nian.charv, nian.sz, nnp_code)) ){
         return false;
@@ -91,6 +92,8 @@ uint8_t readLine(){//returns 0 if eof read
     }
 
     logMessage(FILE_PARSING, "Line Read: %s\n", nian.charv);
+    
+
     return true;
 }
 
