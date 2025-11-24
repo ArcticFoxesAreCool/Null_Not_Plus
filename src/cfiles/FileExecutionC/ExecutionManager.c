@@ -12,10 +12,10 @@ int line_number = 0;
 
 bool skip_execution = false;
 int no_scope = 0;
-struct ConditionalTracking conditional_tracker = {0};
-// extern fpos_t start_of_line_pos;
 long tell = 0;
-struct LoopList loop_list = {0};
+struct BlockTracker block_tracker = {0};
+// struct ConditionalTracking conditional_tracker = {0};
+// struct LoopList loop_list = {0};
 
 
 static bool checkShouldResumeExecute(enum TypeOfLine line_type);
@@ -30,8 +30,9 @@ void executeCode(const char* nnp_path){
     initReader(READER_INITIAL_SIZE, READER_TOKEN_ARR_INITIAL_CAPACITY);
     initTok_types(INITIAIL_TOKEN_TYPER_SIZE);
     openFile(nnp_path);
-    initConditionalTracker(&conditional_tracker, 8);
-    initLoopList(&loop_list, 4);
+    initBlockTracker(&block_tracker, BLOCK_TRACKER_INITIAL_CAPACITY);
+    // initConditionalTracker(&conditional_tracker, 8);
+    // initLoopList(&loop_list, 4);
 
     extern FILE* nnp_code;
 
@@ -66,8 +67,9 @@ void executeCode(const char* nnp_path){
     }
     // printf("\nConditionalTracker, length: %d\n", conditional_tracker.length);
 
-    freeLoopList(&loop_list);
-    freeConditionalTracker(&conditional_tracker);    
+    // freeLoopList(&loop_list);
+    // freeConditionalTracker(&conditional_tracker);    
+    freeBlockTracker(&block_tracker);
     myFree(line_memory.objs);
     closeFile();
     freeTok_types();
@@ -138,7 +140,11 @@ void endOfLineLogging(){
     logMessage(FILE_PARSING, "\n\n");
     logMessage(FUNCTION_CALLS, "Finished line %d\n\n", line_number);
 
-    logVariables(MEMORY_STATE, &big_storage, false);
+    // logVariables(MEMORY_STATE, &big_storage, false);
+    logMessage(MEMORY_STATE, "No Scope: %d\tSkip Execution: %d\n", no_scope, skip_execution);
+    for (int i = 0; i < block_tracker.length; i++){
+        logMessage(MEMORY_STATE, "block(%d)=%d\n", i, block_tracker.data[i].state);
+    }
     logMessage(MEMORY_STATE, "Finished line %d\n\n", line_number);
 }
 
@@ -184,40 +190,86 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
 
 
 
+
+
+
+
+
+/*
+no scope: 0
+skip: false
+
+scope tracker:
+    if 0 (add to block tracker, no scope, )
+        loop 1 (if false, set skip to true)
+            if 2
+            no 2 (clear previous)
+        no 1 (if loop exit clear previous return to loop, else clear previous)
+    no if 0 (if has triggered then set skip to true, else clear previous then start new if)
+    no now 0 (if has triggered then set skip to true, else clear previous then start new now)
+    no 0 (clear previous)
+
+
+    if 0
+    no now 0
+    no 0
+no 0
+*/
+
+
+
 static bool checkShouldResumeExecute(enum TypeOfLine line_type){
     assert(skip_execution);
 
     extern Reader nian;
     extern TokenTyper tok_types;
+    
+    if (nian.tok_ind_len == 0 || line_type == LINE_ARITHMETIC) return false;
 
-
-    switch(line_type){
-    case LINE_LOOP:
+    switch (line_type){
+     case LINE_CONDITIONAL:
+     case LINE_LOOP:
+     case LINE_CLASS_DECLARATION:
+     case LINE_FUNC_DECLARATION:
         no_scope++;
-        break;
-    case LINE_NO_SCOPE:
-        no_scope--;
-        break;
-    case LINE_CONDITIONAL:
-        if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
-            no_scope++;
-        } else if (no_scope == 1){
-            if (nian.tok_ind_len == 2 && !(conditional_tracker.data[conditional_tracker.length-1].if_has_been_triggered) && strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
-                no_scope--;
-                return true;
-            } else if (nian.tok_ind_len >= 3 && !(conditional_tracker.data[conditional_tracker.length-1].if_has_been_triggered) && strncmp(nian.charv + nian.token_indexes[1], "if", 3) == 0){
-                no_scope--;
-                return true;
-            }
-        }
-        break;
     default:
-        return false;
+        break;
     }
+    if (strncmp(nian.charv + nian.token_indexes[0], "no", 3) == 0){
+        no_scope--;
+    } 
 
-    return no_scope == 0;
+    return (no_scope == block_tracker.length - 1) || 
+        (no_scope == block_tracker.length && (line_type == LINE_CONDITIONAL));
+
 }
 
+
+
+
+
+
+/*
+no scope: 0
+skip: false
+
+scope tracker:
+    if 0 (add to block tracker, no scope, )
+        loop 1 (if false, set skip to true)
+            if 2
+            no 2 (clear previous)
+        no 1 (if loop exit clear previous return to loop, else clear previous)
+    no if 0 (if has triggered then set skip to true, else clear previous then start new if)
+    no now 0 (if has triggered then set skip to true, else clear previous then start new now)
+    no 0 (clear previous)
+
+
+    if 0
+    no now 0
+    no 0
+no 0
+*/
+// static int popCount = 0, appendCount = 0;
 
 
 
@@ -228,7 +280,11 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
     assert(tok_types.types);
     assert(p_line_memory && p_line_memory->objs && p_line_memory->capacity >= 1);
 
-    if (skip_execution) skip_execution = !checkShouldResumeExecute(line_type);
+    bool can_decrement_no = true;
+    if (skip_execution){
+        skip_execution = !checkShouldResumeExecute(line_type);
+        can_decrement_no = line_type != LINE_NO_SCOPE;
+    }
     if (skip_execution) return;
 
     switch(line_type){
@@ -238,70 +294,64 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
     case LINE_CONDITIONAL:
         assert(nian.tok_ind_len >= 2);
         if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
-            appendToConditionalTracker(&conditional_tracker, (struct ConditionalData){.no_scope_level=no_scope, .if_has_been_triggered=false});
+            no_scope++;
             subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
             if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                 logMessage(OUT, "Error, if's expression does not evaluate to one BoolObj");
                 exit(1);
-            } else if (((BoolObj*)(p_line_memory->objs[0]))->value != false){
-                conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered = true;
+            } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
+                appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_IF_HAS_TRIGGERED});
             } else {
-                no_scope++;
+                appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_IF_NOT_TRIGGERED});
                 skip_execution = true;
             }
         } else if (strncmp(nian.charv + nian.token_indexes[1], "if", 3) == 0){
-            if (conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered){
-                no_scope++;
+            assert(block_tracker.length >= 1);
+            // no_scope++;
+            if (block_tracker.data[block_tracker.length - 1].state == BLOCK_IF_HAS_TRIGGERED){
                 skip_execution = true;
-            } else {
-                subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
+                // no_scope--;
+            } else if (block_tracker.data[block_tracker.length - 1].state == BLOCK_IF_NOT_TRIGGERED){
+                subCondenseObjsOperators(p_line_memory, NULL, 2, nian.tok_ind_len - 1);
                 if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                     logMessage(OUT, "Error, no if's expression does not evaluate to one BoolObj");
                     exit(1);
-                } else if (((BoolObj*)(p_line_memory->objs[0]))->value != false){
-                    conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered = true;
+                } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
+                    block_tracker.data[block_tracker.length - 1].state = BLOCK_IF_HAS_TRIGGERED;
                 } else {
-                    no_scope++;
                     skip_execution = true;
+                    // no_scope--;
                 }
             }
-        } else if (conditional_tracker.data[conditional_tracker.length - 1].if_has_been_triggered && strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
-            no_scope++;
-            skip_execution = true;
+        } else if (strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
+            assert(block_tracker.length >= 1);
+            // no_scope++;
+            if (block_tracker.data[block_tracker.length - 1].state == BLOCK_IF_HAS_TRIGGERED){
+                block_tracker.data[block_tracker.length - 1].state = BLOCK_NOW_NOT_EXECUTE;
+                skip_execution = true;
+                // no_scope--;
+            } else if (block_tracker.data[block_tracker.length - 1].state == BLOCK_IF_NOT_TRIGGERED){
+                block_tracker.data[block_tracker.length - 1].state = BLOCK_NOW_WILL_EXECUTE;
+                // no_scope++;
+            }
         }
-
         break;
     case LINE_LOOP:
         assert(nian.tok_ind_len >= 2);
+        // printf("\nappendcount: %d\tlength: %d\n", ++appendCount, block_tracker.length);
+        no_scope++;
         subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
         if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
             logMessage(OUT, "Error, loop's expression does not evaluate to one BoolObj");
             exit(1);
-        } else if (((BoolObj*)(p_line_memory->objs[0]))->value != false){
-            if (loop_list.data[loop_list.length - 1].line_number != line_number){
-                appendLoopList(&loop_list, (struct LoopListData){.line_number=line_number, .loop_tell=tell, .no_scope_level=no_scope});
-                loop_list.data[loop_list.length - 1].loop_tell = tell;
-                loop_list.data[loop_list.length - 1].line_number = line_number;
-                loop_list.data[loop_list.length - 1].no_scope_level = no_scope;
-
-                // printf("Loop list len: %d\n\tline number: %d\n\tno scope level: %d\n\tline tell: %ld\n", 
-                // loop_list.length, loop_list.data[loop_list.length-1].line_number, 
-                // loop_list.data[loop_list.length-1].no_scope_level, loop_list.data[loop_list.length-1].loop_tell);
-            }
-
-        } else if (loop_list.length >= 1 && loop_list.data[loop_list.length - 1].line_number == line_number) {
-            skip_execution = true;
-            no_scope++;
-            popLoopList(&loop_list);
+        } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
+            appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE});
         } else {
+            // printf("\nblocktracker.len 1: %d", block_tracker.length);
+            appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_LOOP_LEAVE});
+            // printf("\nblocktracker.len 2: %d\n\n", block_tracker.length);
             skip_execution = true;
-            no_scope++;
-            // printf("\nEND\nLoop list len: %d\n\tline number: %d\n\tno scope level: %d\n\tline tell: %ld\n", 
-            //     loop_list.length, loop_list.data[loop_list.length-1].line_number, 
-            //     loop_list.data[loop_list.length-1].no_scope_level, loop_list.data[loop_list.length-1].loop_tell);
-            // exit(1);
         }
-        
         break;
         
     case LINE_CLASS_DECLARATION:
@@ -310,18 +360,16 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         exit(1);
         break;
     case LINE_NO_SCOPE:
-        // puts("Got here?");
-        if (conditional_tracker.length >= 1 && conditional_tracker.data[conditional_tracker.length - 1].no_scope_level == no_scope)
-            // puts(nian.charv + nian.token_indexes[0]);
-            popConditionalTracker(&conditional_tracker);
-        if (loop_list.length >= 1 && loop_list.data[loop_list.length - 1].no_scope_level == no_scope){
-            // printf("loop_list tell: %ld\n", loop_list.data[loop_list.length - 1].loop_tell);
-            line_number = loop_list.data[loop_list.length - 1].line_number - 1;
-            gotoCurrentLoop(&loop_list);
-
+        if (can_decrement_no) no_scope--;
+        // puts("SDFKLSJFDS:LKDFJ");
+        assert(block_tracker.length >= 1);
+        if (block_tracker.data[block_tracker.length - 1].state == BLOCK_LOOP_REEXECUTE){
+            returnToLoop(&block_tracker);
         }
-        return;
+        popBlocktracker(&block_tracker);
+        // printf("popcount: %d\n", ++popCount);
+        break;
     case LINE_BLANK:
-        return;
+        break;
     }
 }

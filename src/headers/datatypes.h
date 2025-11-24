@@ -56,7 +56,7 @@
 #include "FileParsingH/KeywordsAndOperators.h"
 #include "FileParsingH/FileReading.h"
 #include "FileParsingH/TokenInerpertation.h"
-#include "FileParsingH/LoopTracking.h"
+// #include "FileParsingH/LoopTracking.h"
 
 
 
@@ -65,7 +65,8 @@
 #include "FileExecutionH/StandardMethodsFunctions.h"
 #include "FileExecutionH/VariableAssignment.h"
 #include "FileExecutionH/ExecutionManager.h"
-#include "FileExecutionH/ConditionalLogic.h"
+// #include "FileExecutionH/ConditionalLogic.h"
+#include "FileExecutionH/BlockTracking.h"
 
 
 // struct _FuncObj_t {
