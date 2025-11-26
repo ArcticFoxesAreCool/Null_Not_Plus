@@ -45,11 +45,9 @@ void executeCode(const char* nnp_path){
     enum TypeOfLine current_line_type;
     // struct ScopeTracker scope_info = {.execution_level = 0, .no_nest_level = 0};
 
-    uint8_t run = true;
+    tell = ftell(nnp_code);
 
-    while (run){
-        tell = ftell(nnp_code);
-        run = readLine();
+    while (readLine()){
         // printf("tell: %ld\n", tell);
         line_number++;
 
@@ -64,6 +62,8 @@ void executeCode(const char* nnp_path){
         freeNonVarsInObjArr(&line_memory, &big_storage);
 
         endOfLineLogging();
+
+        tell = ftell(nnp_code);
     }
     // printf("\nConditionalTracker, length: %d\n", conditional_tracker.length);
 
@@ -140,11 +140,11 @@ void endOfLineLogging(){
     logMessage(FILE_PARSING, "\n\n");
     logMessage(FUNCTION_CALLS, "Finished line %d\n\n", line_number);
 
-    // logVariables(MEMORY_STATE, &big_storage, false);
-    logMessage(MEMORY_STATE, "No Scope: %d\tSkip Execution: %d\n", no_scope, skip_execution);
-    for (int i = 0; i < block_tracker.length; i++){
-        logMessage(MEMORY_STATE, "block(%d)=%d\n", i, block_tracker.data[i].state);
-    }
+    logVariables(MEMORY_STATE, &big_storage, false);
+    // logMessage(MEMORY_STATE, "No Scope: %d\tSkip Execution: %d\n", no_scope, skip_execution);
+    // for (int i = 0; i < block_tracker.length; i++){
+    //     logMessage(MEMORY_STATE, "block(%d)=%d\n", i, block_tracker.data[i].state);
+    // }
     logMessage(MEMORY_STATE, "Finished line %d\n\n", line_number);
 }
 
@@ -361,7 +361,7 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         break;
     case LINE_NO_SCOPE:
         if (can_decrement_no) no_scope--;
-        // puts("SDFKLSJFDS:LKDFJ");
+        // puts("SDFKLSJFDS:LKDFJ");fflush(stdout);
         assert(block_tracker.length >= 1);
         if (block_tracker.data[block_tracker.length - 1].state == BLOCK_LOOP_REEXECUTE){
             returnToLoop(&block_tracker);
