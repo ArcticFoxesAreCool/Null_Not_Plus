@@ -227,10 +227,12 @@ static bool checkShouldResumeExecute(enum TypeOfLine line_type){
     if (nian.tok_ind_len == 0 || line_type == LINE_ARITHMETIC) return false;
 
     switch (line_type){
-     case LINE_CONDITIONAL:
-     case LINE_LOOP:
-     case LINE_CLASS_DECLARATION:
-     case LINE_FUNC_DECLARATION:
+    case LINE_LOOP:
+        if (loopLineIsBreakContinue() != LOOP_START) return false;    
+    
+    case LINE_CONDITIONAL:
+    case LINE_CLASS_DECLARATION:
+    case LINE_FUNC_DECLARATION:
         no_scope++;
     default:
         break;
@@ -339,19 +341,47 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
     case LINE_LOOP:
         assert(nian.tok_ind_len >= 2);
         // printf("\nappendcount: %d\tlength: %d\n", ++appendCount, block_tracker.length);
-        no_scope++;
-        subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
-        if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
-            logMessage(OUT, "Error, loop's expression does not evaluate to one BoolObj");
-            exit(1);
-        } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
-            appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE});
-        } else {
-            // printf("\nblocktracker.len 1: %d", block_tracker.length);
-            appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_LOOP_LEAVE});
-            // printf("\nblocktracker.len 2: %d\n\n", block_tracker.length);
-            skip_execution = true;
+
+        enum LoopBreakContinue loop_type = loopLineIsBreakContinue();
+
+        switch (loop_type){
+
+        case LOOP_BREAK:
+            for (int i = block_tracker.length - 1; i >= 0; i--){
+                if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
+                    block_tracker.data[i].state = BLOCK_LOOP_LEAVE;
+                    skip_execution = true;
+                    goto outOfLoopSwitch;
+                }
+            }
+            assert("ExecutionManager.c executeTheLine case LOOP_BREAK" && false);
+        case LOOP_CONTINUE:
+            for (int i = block_tracker.length - 1; i >= 0; i--){
+                if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
+                    skip_execution = true;
+                    goto outOfLoopSwitch;
+                }
+            }
+            assert("ExecutionManager.c executeTheLine case LOOP_BREAK" && false);
+
+        case LOOP_START:
+            no_scope++;
+            subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
+            if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
+                logMessage(OUT, "Error, loop's expression does not evaluate to one BoolObj");
+                exit(1);
+            } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
+                appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE, .line_count = line_number - 1});
+            } else {
+                // printf("\nblocktracker.len 1: %d", block_tracker.length);
+                appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_LOOP_LEAVE});
+                // printf("\nblocktracker.len 2: %d\n\n", block_tracker.length);
+                skip_execution = true;
+            }
+            break;
         }
+        outOfLoopSwitch:
+
         break;
         
     case LINE_CLASS_DECLARATION:

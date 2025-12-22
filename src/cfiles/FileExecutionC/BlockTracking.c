@@ -41,5 +41,33 @@ void popBlocktracker(struct BlockTracker* p_block_tracker){
 void returnToLoop(const struct BlockTracker* p_block_tracker){
     assert(p_block_tracker && p_block_tracker->capacity >= 1 && p_block_tracker->length >= 1 && p_block_tracker->data && p_block_tracker->data[p_block_tracker->length - 1].state == BLOCK_LOOP_REEXECUTE);
     extern FILE* nnp_code;
+
+    extern int line_number;
+    
+    line_number = p_block_tracker->data[p_block_tracker->length - 1].line_count;
     fseek(nnp_code, p_block_tracker->data[p_block_tracker->length - 1].loop_tell, SEEK_SET);
+}
+
+
+
+enum LoopBreakContinue loopLineIsBreakContinue(){
+    extern Reader nian;
+    extern TokenTyper tok_types;
+
+    assert(nian.charv && nian.sz > 0 && nian.token_indexes && nian.tok_ind_capacity > 0 && nian.tok_ind_len > 0);
+    assert(tok_types.size > 0 && tok_types.types);
+
+    for(int i = 0; i < nian.tok_ind_len - 1; i++){
+        if (strncmp(nian.charv + nian.token_indexes[i], "loop", 5) == 0){
+            i++;
+            if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0){
+                return LOOP_BREAK;
+            } else if (strncmp(nian.charv + nian.token_indexes[i], "<-", 3) == 0){
+                return LOOP_CONTINUE;
+            }
+            return LOOP_START;
+        }
+    }
+    assert("No loop found when loopLineIsBreak is called" && false);
+    return LOOP_START;
 }
