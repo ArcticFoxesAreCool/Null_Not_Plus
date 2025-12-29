@@ -2,7 +2,7 @@
 
 
 void* speakFunction(StrObj* str){
-    assert(str);
+    assert(str && str->type == STR_OBJ);
     if (str->value.union_mode == NNPSTR_UNIONMODE_BUFFER){
         printf("%s", str->value.string.buffer);
     } else {
