@@ -254,3 +254,67 @@ void insertInObjArray(ObjArray* p_obj_arr, const object_p this_obj, uint index){
 // //  0  1  2  3  4  5
 // //  a  b  c  d
 }
+
+
+
+static bool twoListsEqual(const ListObj* lst1, const ListObj* lst2);
+
+
+
+bool objsEqual(const object_p obj1, const object_p obj2){
+    assert(obj1 && obj2);
+    Datatype_e obj1_type = *(Datatype_e*)obj1;
+    if (obj1_type != *(Datatype_e*)obj2) return false;
+
+    switch (obj1_type){
+    case BOOL_OBJ:
+        return ((BoolObj*)obj1)->value == ((BoolObj*)obj2)->value;
+    case DATATYPE_OBJ:
+        return ((DatatypeObj*)obj1)->value == ((DatatypeObj*)obj2)->value;
+    case NUM_OBJ: {
+        double val1 = ((NumObj*)obj1)->value;
+        double val2 = ((NumObj*)obj2)->value;
+        return fabs(val1 - val2) < 2 * __DBL_EPSILON__;
+    }
+    case LIST_OBJ:
+        return twoListsEqual(obj1, obj2);
+    case STR_OBJ:
+        return NnpStrEq(  &(((StrObj*)obj1)->value),  &(((StrObj*)obj2)->value) );
+    case FUNC_OBJ: {
+        enum PrebuiltFuncs_e function_type_1 = ((FuncObj*)obj1)->func_type;
+        if (function_type_1 != ((FuncObj*)obj2)->func_type)
+            return false;
+        if (function_type_1 == USER_FUNC){
+            return ((FuncObj*)obj1)->f_loc == ((FuncObj*)obj2)->f_loc;
+        }
+        return true;
+    }
+
+    case INSTANCE_OBJ:
+    case CLASS_OBJ:
+        printf("CLASSES not implemented yet!\n");
+        exit(1);
+    case NAO:
+        printf("objsEqual should never be called on a NAO\n");
+        exit(1);
+
+    }
+    printf("\n\nObjArray.c objsEqaul\tShould have returned!");
+    exit(1);
+}
+
+
+
+static bool twoListsEqual(const ListObj* lst1, const ListObj* lst2){
+    assert(lst1 && lst2);
+
+    if (lst1->values.length != lst2->values.length) return false;
+
+    for (uint i = 0; i < lst1->values.length; i++){
+       
+        if (objsEqual(lst1->values.objs[i], lst2->values.objs[i]) == false)
+            return false;
+    }
+
+    return true;
+}

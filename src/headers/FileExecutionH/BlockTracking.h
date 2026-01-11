@@ -15,8 +15,11 @@ enum BlockState {
 };
 
 struct BlockData {
+
+    object_p loop_label;
     long loop_tell;
     int line_count;
+    
     enum BlockState state;
 };
 
@@ -41,6 +44,8 @@ void appendBlockTracker(struct BlockTracker* p_block_tracker, struct BlockData n
 void popBlocktracker(struct BlockTracker* p_block_tracker);
 
 void returnToLoop(const struct BlockTracker* p_block_tracker);
+
+object_p getLoopsLabel();
 
 enum LoopBreakContinue loopLineIsBreakContinue();
 

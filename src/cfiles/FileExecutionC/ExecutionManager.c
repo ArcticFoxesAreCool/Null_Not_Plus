@@ -14,8 +14,7 @@ bool skip_execution = false;
 int no_scope = 0;
 long tell = 0;
 struct BlockTracker block_tracker = {0};
-// struct ConditionalTracking conditional_tracker = {0};
-// struct LoopList loop_list = {0};
+
 
 
 static bool checkShouldResumeExecute(enum TypeOfLine line_type);
@@ -31,8 +30,7 @@ void executeCode(const char* nnp_path){
     initTok_types(INITIAIL_TOKEN_TYPER_SIZE);
     openFile(nnp_path);
     initBlockTracker(&block_tracker, BLOCK_TRACKER_INITIAL_CAPACITY);
-    // initConditionalTracker(&conditional_tracker, 8);
-    // initLoopList(&loop_list, 4);
+    
 
     extern FILE* nnp_code;
 
@@ -65,10 +63,8 @@ void executeCode(const char* nnp_path){
 
         tell = ftell(nnp_code);
     }
-    // printf("\nConditionalTracker, length: %d\n", conditional_tracker.length);
-
-    // freeLoopList(&loop_list);
-    // freeConditionalTracker(&conditional_tracker);    
+   
+    
     freeBlockTracker(&block_tracker);
     myFree(line_memory.objs);
     closeFile();
@@ -148,6 +144,7 @@ void endOfLineLogging(){
     logMessage(MEMORY_STATE, "Finished line %d\n\n", line_number);
 }
 
+static int findLoopKeywordIndex();
 
 enum TypeOfLine getCurrentLineType(const Storage* p_store){
     extern Reader nian;
@@ -164,7 +161,7 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
     }
 
     
-    if (strncmp(nian.charv + nian.token_indexes[0], "loop", 5) == 0){
+    if (findLoopKeywordIndex() != -1){
         return LINE_LOOP;
     } else if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
         return LINE_CONDITIONAL;
@@ -173,8 +170,6 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
     if (nian.tok_ind_len >= 2){
         if (strncmp(nian.charv + nian.token_indexes[1], "if", 3) == 0 || strncmp(nian.charv + nian.token_indexes[1], "now", 4) == 0){
             return LINE_CONDITIONAL;
-        } else if (strncmp(nian.charv + nian.token_indexes[1], "loop", 5) == 0){
-            return LINE_LOOP;
         } else if (tok_types.types[0] == VARIABLE && strncmp(nian.charv + nian.token_indexes[1], "<-", 3) == 0){
             NnpStr temp_str = makeNnpStr(nian.charv + nian.token_indexes[0]);
             if (getFromStorage(p_store, &temp_str) == NULL){
@@ -190,6 +185,19 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
 
 
 
+static int findLoopKeywordIndex(){
+    extern Reader nian;
+    extern TokenTyper tok_types;
+    assert(nian.charv && nian.sz > 0 && nian.token_indexes && nian.tok_ind_capacity > 0 && nian.tok_ind_len > 0);
+    assert(tok_types.size > 0 && tok_types.types);
+
+    for(int i = 0; i < nian.tok_ind_len; i++){
+        if (strncmp(nian.charv + nian.token_indexes[i], "loop", 5) == 0){
+            return i;
+        }
+    }
+    return -1;
+}
 
 
 
@@ -294,6 +302,7 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         condenseObjsAndOperators(p_line_memory);
         break;
     case LINE_CONDITIONAL:
+        #pragma region LINECONDITIONAL
         assert(nian.tok_ind_len >= 2);
         if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
             no_scope++;
@@ -338,23 +347,52 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
             }
         }
         break;
+        #pragma endregion
     case LINE_LOOP:
+        #pragma region LINELOOP
         assert(nian.tok_ind_len >= 2);
         // printf("\nappendcount: %d\tlength: %d\n", ++appendCount, block_tracker.length);
-
         enum LoopBreakContinue loop_type = loopLineIsBreakContinue();
-
         switch (loop_type){
 
-        case LOOP_BREAK:
-            for (int i = block_tracker.length - 1; i >= 0; i--){
-                if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
-                    block_tracker.data[i].state = BLOCK_LOOP_LEAVE;
-                    skip_execution = true;
-                    goto outOfLoopSwitch;
+        case LOOP_BREAK: {
+            object_p break_label = getLoopsLabel();
+            if (break_label == NULL){
+                for (int i = block_tracker.length - 1; i >= 0; i--){
+                    if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
+                        block_tracker.data[i].state = BLOCK_LOOP_LEAVE;
+                        if (block_tracker.data[i].loop_label){
+                            freeObj(block_tracker.data[i].loop_label);
+                            block_tracker.data[i].loop_label = NULL;
+                        }
+                        skip_execution = true;
+
+                        goto outOfLoopSwitch;
+                    }
                 }
+                assert("ExecutionManager.c executeTheLine case LOOP_BREAK labelless" && false);
+            } else {
+                for (int i = block_tracker.length - 1; i >= 0; i--){
+                    if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
+                        block_tracker.data[i].state = BLOCK_LOOP_LEAVE;
+                        skip_execution = true;
+                        if (block_tracker.data[i].loop_label && objsEqual(break_label, block_tracker.data[i].loop_label)){
+                            freeObj(break_label);
+                            freeObj(block_tracker.data[i].loop_label);
+                            block_tracker.data[i].loop_label = NULL;
+                            goto outOfLoopSwitch;
+                        }
+                        if (block_tracker.data[i].loop_label){
+                            freeObj(block_tracker.data[i].loop_label);
+                            block_tracker.data[i].loop_label = NULL;
+                        }
+                    }
+                }
+                logMessage(OUT, "Error in ExecutionManager.c executeTheLine() case LOOP_BREAK labelled. Labeled loop not found\n");
+                exit(1);
+                // assert("ExecutionManager.c executeTheLine case LOOP_BREAK labelled" && false);
             }
-            assert("ExecutionManager.c executeTheLine case LOOP_BREAK" && false);
+        }
         case LOOP_CONTINUE:
             for (int i = block_tracker.length - 1; i >= 0; i--){
                 if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
@@ -366,14 +404,17 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
 
         case LOOP_START:
             no_scope++;
-            subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
+            subCondenseObjsOperators(p_line_memory, NULL, findLoopKeywordIndex() + 1, nian.tok_ind_len - 1);
             if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                 logMessage(OUT, "Error, loop's expression does not evaluate to one BoolObj");
                 exit(1);
+
             } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
-                appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE, .line_count = line_number - 1});
+
+                appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE, .line_count = line_number - 1, .loop_label = getLoopsLabel()});
             } else {
                 // printf("\nblocktracker.len 1: %d", block_tracker.length);
+                
                 appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_LOOP_LEAVE});
                 // printf("\nblocktracker.len 2: %d\n\n", block_tracker.length);
                 skip_execution = true;
@@ -383,7 +424,7 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         outOfLoopSwitch:
 
         break;
-        
+        #pragma endregion
     case LINE_CLASS_DECLARATION:
     case LINE_FUNC_DECLARATION:
         puts("Class and Function Declaration unimplemented. Try again in a few weeks");

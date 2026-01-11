@@ -28,8 +28,7 @@ object_p copyObj(const object_p this_obj);
 
 void freeObj(object_p this_obj);
 
-
-
+bool objsEqual(const object_p obj1, const object_p obj2);
 
 void appendInObjArray(ObjArray* p_obj_arr, const object_p this_obj);
 
