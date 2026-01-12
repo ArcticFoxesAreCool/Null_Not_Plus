@@ -3,6 +3,8 @@
 
 #include "../DynamicValuesH/Storage.h"
 
+#define SKIP_EXECUTION_UNTIL_INACTIVE -1
+
 enum TypeOfLine {
     LINE_BLANK,
     LINE_ARITHMETIC,
@@ -24,7 +26,7 @@ void initBigStorage(int size);
 
 void deepFreeBigStorage();
 
-void endOfLineLogging();
+void endOfLineLogging(bool log_empty_lines);
 
 enum TypeOfLine getCurrentLineType(const Storage* p_store);
 
