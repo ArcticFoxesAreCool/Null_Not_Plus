@@ -35,10 +35,10 @@ void freeCallStack(){
     
     myFree(call_stack.local_vars);
     call_stack.local_vars = NULL;
-    // myFree(call_stack.where_will_return);
-    // call_stack.where_will_return = NULL;
-    // myFree(call_stack.previous_line);
-    // call_stack.previous_line = NULL;
+    myFree(call_stack.where_will_return);
+    call_stack.where_will_return = NULL;
+    myFree(call_stack.previous_line);
+    call_stack.previous_line = NULL;
 
     call_stack.capacity = 0;
     
