@@ -8,42 +8,46 @@ extern Storage big_storage;
 
 
 
-void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index);
+void subCondenseObjsOperators(Storage* scope, ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index);
+
 
 // functionCalled(p_temp_stack, &i, stop_index);
-void functionCalled(ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
+void functionCalled(Storage* scope, ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
 
     assert(p_obj_arr && p_curr_tok_index);
     Datatype_e dat = *(Datatype_e*)(p_obj_arr->objs[p_obj_arr->length - 1]);
-    if (dat != FUNC_OBJ){logMessage(FILE_PARSING, "Function called with a non-FuncObj\n"); exit(1);}
+    if (dat != COMP_FUNC_OBJ && dat != USER_FUNC_OBJ){logMessage(FILE_PARSING, "Function called with a non-FuncObj\n"); exit(1);}
 
     extern Reader nian; extern TokenTyper tok_types;
     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 1 && nian.token_indexes && nian.tok_ind_len > *p_curr_tok_index);
     assert(tok_types.size > 1 && tok_types.types);
 
-    FuncObj* func_ref = p_obj_arr->objs[p_obj_arr->length - 1];
-
-    if (func_ref->func_type == USER_FUNC){puts("Have not implemented user-defined functions yet"); exit(1);}
-
-    // puts("A");fflush(stdout);
+    object_p func_ref = p_obj_arr->objs[p_obj_arr->length - 1];
+    int arg_count;
+    if (dat == USER_FUNC_OBJ){
+        arg_count = ((UserFuncObj*)func_ref)->num_args;
+    } else {
+        arg_count = ((CompFuncObj*)func_ref)->num_args;
+    }
 
     int start_index = *p_curr_tok_index;
-    int final_index = getFunctionFinalParameterIndex(func_ref->num_args, start_index, stop_index, &big_storage);
+    int final_index = getFunctionFinalParameterIndex(arg_count, start_index, stop_index, scope);
 
-    // puts("\tB");fflush(stdout);
 
     if (final_index != -1){
-        subCondenseObjsOperators(p_obj_arr, NULL, start_index + 1, final_index);
+        subCondenseObjsOperators(scope, p_obj_arr, NULL, start_index + 1, final_index);
         *p_curr_tok_index = final_index;
     }
 
-    // puts("\tA");fflush(stdout);
 
-    resolveFunction(p_obj_arr, func_ref->num_args);
+    if (dat == USER_FUNC_OBJ){
+        resolveUserFunc(p_obj_arr, arg_count);
+        // puts("RESOLVED!");fflush(stdout);
+    } else {
+        resolveCompFunction(p_obj_arr, arg_count);
+    }
 
-    // puts("B");fflush(stdout);
-    // FUNCTION RESOLUTION
-
+    
 }
 
 
@@ -55,7 +59,7 @@ void functionCalled(ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
 
 
 
-static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int index);
+static void addValVarToTempStack(Storage* scope, ObjArray* p_temp_stack, Datatype_e* datatype_arr, int index);
 static void operationResolution(ObjArray* p_temp_stack, int final_index);
 
 
@@ -95,7 +99,7 @@ int getListClosingIndex(int open_bracket_index){
 
 
 
-void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
+void subCondenseObjsOperators(Storage* scope, ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index){
     // only start and stop on value/variables
     // printf("start: %d, stop: %d\n", start_index, stop_index);
     assert(start_index >= 0 && stop_index >= 0 && stop_index >= start_index);
@@ -136,24 +140,24 @@ void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, 
                 }
 
                 ListObj* added_list = p_temp_stack->objs[p_temp_stack->length - 1];
-                subCondenseObjsOperators(&(added_list->values), NULL, i + 1, getListClosingIndex(i) - 1);
+                subCondenseObjsOperators(scope, &(added_list->values), NULL, i + 1, getListClosingIndex(i) - 1);
                 i = list_closed_at;
                 continue;
             }
 
-            addValVarToTempStack(p_temp_stack, datatype_arr, i);
+            addValVarToTempStack(scope, p_temp_stack, datatype_arr, i);
 
             
         } else if (tok_types.types[i] == OPERATOR){
             
             if (strncmp(nian.charv + nian.token_indexes[i], "<-", 3) == 0){
 
-                functionCalled(p_temp_stack, &i, stop_index);
-
+                functionCalled(scope, p_temp_stack, &i, stop_index);
+                
             } else if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0){
                 assert(nian.tok_ind_len > i + 1 && tok_types.types[i+1] == VARIABLE);
                 NnpStr var_identifier = makeNnpStr(nian.charv + nian.token_indexes[i+1]);
-                assignVar(&big_storage, p_temp_stack, &var_identifier);
+                assignVar(scope, p_temp_stack, &var_identifier);
                 freeNnpStr(&var_identifier);
             } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE)){
                 i++;
@@ -177,7 +181,7 @@ void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, 
                     }
 
                     ListObj* added_list = p_temp_stack->objs[p_temp_stack->length - 1];
-                    subCondenseObjsOperators(&(added_list->values), NULL, i + 1, getListClosingIndex(i) - 1);
+                    subCondenseObjsOperators(scope, &(added_list->values), NULL, i + 1, getListClosingIndex(i) - 1);
                     operationResolution(p_temp_stack, i);
                     i = list_closed_at;
                     continue;
@@ -189,7 +193,7 @@ void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, 
 
 
 
-                addValVarToTempStack(p_temp_stack, datatype_arr, i);
+                addValVarToTempStack(scope, p_temp_stack, datatype_arr, i);
                 // if (strncmp(nian.charv + nian.token_indexes[i], "]", 2) == 0) continue;
 
                 operationResolution(p_temp_stack, i);
@@ -216,7 +220,7 @@ void subCondenseObjsOperators(ObjArray* p_temp_stack, Datatype_e* datatype_arr, 
 
 
 
-void condenseObjsAndOperators(ObjArray* obj_line_stack){
+void condenseObjsAndOperators(Storage* scope, ObjArray* obj_line_stack){
     assert(obj_line_stack && obj_line_stack->length == 0);
 
     extern Reader nian;
@@ -243,7 +247,7 @@ void condenseObjsAndOperators(ObjArray* obj_line_stack){
 
     Datatype_e temp_stack_types[nian.tok_ind_len];
 
-    subCondenseObjsOperators(obj_line_stack, temp_stack_types, 0, nian.tok_ind_len - 1);
+    subCondenseObjsOperators(scope, obj_line_stack, temp_stack_types, 0, nian.tok_ind_len - 1);
 }
 
 
@@ -259,7 +263,7 @@ void condenseObjsAndOperators(ObjArray* obj_line_stack){
 
 
 
-static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_arr, int index){
+static void addValVarToTempStack(Storage* scope, ObjArray* p_temp_stack, Datatype_e* datatype_arr, int index){
     assert(p_temp_stack);
     // assert(p_temp_stack && datatype_arr);
     extern Reader nian;    extern TokenTyper tok_types;
@@ -287,7 +291,7 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
         // printf("DEBUG: %d\n", index);
 
         NnpStr tmp_str = makeNnpStr(nian.charv + nian.token_indexes[index]);
-        object_p obj = getFromStorage(&big_storage, &tmp_str);
+        object_p obj = getFromStorage(scope, &tmp_str);
         assert(obj && "unidentified variable");
 
         if (datatype_arr){
@@ -316,7 +320,7 @@ static void addValVarToTempStack(ObjArray* p_temp_stack, Datatype_e* datatype_ar
     }
 }
 
-static OperatorsStruct* getObjOperators(object_p obj){
+static const OperatorsStruct* getObjOperators(object_p obj){
     Datatype_e dat = *((Datatype_e*)obj);
     switch (dat){
     case BOOL_OBJ:
@@ -331,7 +335,7 @@ static OperatorsStruct* getObjOperators(object_p obj){
     }
 }
 
-BuiltMethodsStruct* getObjMethods(object_p obj){
+const BuiltMethodsStruct* getObjMethods(object_p obj){
     Datatype_e dat = *((Datatype_e*)obj);
     switch (dat){
     case BOOL_OBJ:

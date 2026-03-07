@@ -10,7 +10,7 @@ static BoolObj* eqDatatype(object_p op1, DatatypeObj* op2);
 static BoolObj* noteqDatatype(object_p op1, DatatypeObj* op2);
 
 
-OperatorsStruct datatypeOperators = {
+static const OperatorsStruct datatypeOperators = {
     ._cast_datatype = castDatatype,
     ._cast_list = castList,
     ._cast_str = castStr,
@@ -19,7 +19,7 @@ OperatorsStruct datatypeOperators = {
     ._noteq_datatype = noteqDatatype
 };
 
-BuiltMethodsStruct datatypeMethods = BUILT_METHODS_STRUCT_NULL;
+static const BuiltMethodsStruct datatypeMethods = {0};
 
 
 DatatypeObj* constructDatatypeObj(Datatype_e value){
@@ -101,7 +101,8 @@ static StrObj* castStr(object_p op){
     case CLASS_OBJ:
         ret = constructStrObj_char("ClassObj");
         break;
-    case FUNC_OBJ:
+    case COMP_FUNC_OBJ:
+    case USER_FUNC_OBJ:
         ret = constructStrObj_char("FuncObj");
         break;
     default:

@@ -34,8 +34,8 @@ typedef struct _BuiltMethodsStruct BuiltMethodsStruct;
 
 struct _StrObj {
     Datatype_e type;
-    OperatorsStruct* operators;
-    BuiltMethodsStruct* methods;
+    const OperatorsStruct* operators;
+    const BuiltMethodsStruct* methods;
     NnpStr value;
 };
 

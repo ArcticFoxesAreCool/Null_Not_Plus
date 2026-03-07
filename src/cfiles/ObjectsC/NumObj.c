@@ -22,7 +22,7 @@ static StrObj* castStr(object_p op);
 
 
 
-OperatorsStruct numOperators = {
+static const OperatorsStruct numOperators = {
     ._add_num = addNum,
     ._sub_num = subNum,
     ._mult_num = multNum,
@@ -46,7 +46,7 @@ static void* trun(NumObj* op);
 
 
 
-BuiltMethodsStruct numMethods = {
+static const BuiltMethodsStruct numMethods = {
     .truncate = trun
 };
 

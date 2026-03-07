@@ -77,7 +77,7 @@ enum LoopBreakContinue loopLineIsBreakContinue(){
 
 
 
-object_p getLoopsLabel(){
+object_p getLoopsLabel(Storage* p_store){
     extern Reader nian;
     extern TokenTyper tok_types;
     assert(nian.charv && nian.sz > 0 && nian.token_indexes && nian.tok_ind_capacity > 0 && nian.tok_ind_len > 0);
@@ -88,7 +88,7 @@ object_p getLoopsLabel(){
         if (strncmp(nian.charv + nian.token_indexes[i], "loop", 5) == 0){
             ObjArray temp_obj_arr = {.capacity = DEFAULT_OBJ_ARRAY_CAPACITY, .length = 0, .objs = myMalloc(sizeof(object_p) * DEFAULT_OBJ_ARRAY_CAPACITY)};
             assert(temp_obj_arr.objs);
-            subCondenseObjsOperators(&temp_obj_arr, NULL, 0, i - 1);
+            subCondenseObjsOperators(p_store, &temp_obj_arr, NULL, 0, i - 1);
 
 
             for(uint j = 0; j < temp_obj_arr.length - 1; j++){

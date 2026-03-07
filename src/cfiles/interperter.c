@@ -3,7 +3,7 @@
 
 
 int main(int argc, char** argv){
-
+    
     initLogging();
 
     if (argc == 2){

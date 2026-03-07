@@ -9,7 +9,7 @@
 
 int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_index, const Storage* p_store);
 
-void resolveFunction(ObjArray* p_obj_arr, int num_args);
+void resolveCompFunction(ObjArray* p_obj_arr, int num_args);
     // resolveFunction(p_obj_arr, func_ref->num_args);
 
 

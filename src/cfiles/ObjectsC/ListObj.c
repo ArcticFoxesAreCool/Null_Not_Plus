@@ -18,7 +18,7 @@ static BoolObj* noteqList(object_p op1, ListObj* op2);
 
 
 
-OperatorsStruct listOperators = {
+static const OperatorsStruct listOperators = {
     ._add_bool = addBool,// appends to the list
     ._add_datatype = addDatatype,
     ._add_list = addList,
@@ -48,7 +48,7 @@ static void* set_lst(ListObj* lst, object_p value, NumObj* index);
 
 
 
-BuiltMethodsStruct listMethods = {
+static const BuiltMethodsStruct listMethods = {
     .at_loc = at_location,
     .clear = big_clear,
     .find = find_it,

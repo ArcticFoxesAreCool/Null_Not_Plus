@@ -40,8 +40,8 @@
 #include "ObjectsH/ListObj.h"
 #include "ObjectsH/StrObj.h"
 
-#include "ObjectsH/FuncObj.h"
-
+#include "ObjectsH/CompFuncObj.h"
+#include "ObjectsH/UserFuncObj.h"
 
 
 
@@ -56,7 +56,6 @@
 #include "FileParsingH/KeywordsAndOperators.h"
 #include "FileParsingH/FileReading.h"
 #include "FileParsingH/TokenInerpertation.h"
-// #include "FileParsingH/LoopTracking.h"
 
 
 
@@ -65,38 +64,9 @@
 #include "FileExecutionH/StandardMethodsFunctions.h"
 #include "FileExecutionH/VariableAssignment.h"
 #include "FileExecutionH/ExecutionManager.h"
-// #include "FileExecutionH/ConditionalLogic.h"
+#include "FileExecutionH/UserFunctionExecution.h"
 #include "FileExecutionH/BlockTracking.h"
 
-
-// struct _FuncObj_t {
-//     Datatype_e type;
-//     fpos_t declaration_loc;
-//     uint16_t num_args;
-//     ClassObj* class_loc;
-
-//     OperatorsStruct* operators;
-// };
-
-
-// struct _ClassObj_t {
-//     Datatype_e type;
-//     NnpStr* instance_vars;
-//     uint num_instances_vars;
-
-//     FuncObj* constructor;
-//     FuncObj* methods;
-
-//     OperatorsStruct* operators;
-// };
-
-
-// struct _InstanceObj_t {
-//     Datatype_e type;
-//     ClassObj* inherits_from;
-//     ObjArray values;
-//     uint function_level;
-// };
 
 
 

@@ -41,8 +41,7 @@ typedef struct {
     Datatype_e type;
     enum PrebuiltFuncs_e func_type;
     int num_args;
-    fpos_t f_loc;
-} FuncObj;
+} CompFuncObj;
 
 
 void loadPrebuiltsIntoStorage(Storage* p_store);

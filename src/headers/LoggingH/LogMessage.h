@@ -26,7 +26,7 @@ void logFuncStart(enum LoggingFileType whichFile, const char* fmt, ...);
 
 void flushLogs();
 
-void logVariables(enum LoggingFileType whichFile, Storage* p_store, bool printPrebuiltFuncs);
+void logVariables(enum LoggingFileType whichFile, const Storage* p_store, bool printPrebuiltFuncs);
 
 #endif
 

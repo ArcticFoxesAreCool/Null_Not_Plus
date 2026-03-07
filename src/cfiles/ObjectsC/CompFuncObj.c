@@ -22,7 +22,7 @@ const char* prebuilts_identifiers[NUM_PREBUILTS_IDENTIFIERS] = {
 
 
 static void loadHelper(enum PrebuiltFuncs_e prebuilt, int identifier_index, Storage* p_store, int num_ar){
-    FuncObj tmp = {.type = FUNC_OBJ, .func_type = prebuilt, .num_args = num_ar};
+    CompFuncObj tmp = {.type = COMP_FUNC_OBJ, .func_type = prebuilt, .num_args = num_ar};
     NnpStr tmp_str = makeNnpStr(prebuilts_identifiers[identifier_index]);
     appendStorage(p_store, &tmp, &tmp_str);
     freeNnpStr(&tmp_str);

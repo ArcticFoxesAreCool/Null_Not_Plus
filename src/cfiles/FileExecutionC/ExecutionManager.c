@@ -1,35 +1,31 @@
 #include "../../headers/datatypes.h"
 
 
-Storage big_storage = {
-    .capacity = 0,
-    .length = 0,
-    .identifiers = NULL,
-    .objs = NULL
-};
+Storage big_storage = {0};
+CallStack call_stack = {0};
+struct BlockTracker block_tracker = {0};
 
 int line_number = 0;
 
 bool skip_execution = false;
 int no_scope = 0;
 long tell = 0;
-struct BlockTracker block_tracker = {0};
 
 
 
 static bool checkShouldResumeExecute(enum TypeOfLine line_type);
 
-static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type);
+void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage* p_store);
 
-static void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store);
-
+void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store);
 
 void executeCode(const char* nnp_path){
-    initBigStorage(32);
+    initStorage(&big_storage, STORAGE_INITIAL_CAPACITY);
     initReader(READER_INITIAL_SIZE, READER_TOKEN_ARR_INITIAL_CAPACITY);
     initTok_types(INITIAIL_TOKEN_TYPER_SIZE);
     openFile(nnp_path);
     initBlockTracker(&block_tracker, BLOCK_TRACKER_INITIAL_CAPACITY);
+    initCallStack(INITIAL_CALL_STACK_CAPACITY);
     
 
     extern FILE* nnp_code;
@@ -46,7 +42,9 @@ void executeCode(const char* nnp_path){
     tell = ftell(nnp_code);
 
     while (readLine()){
-        // printf("tell: %ld\n", tell);
+        
+
+        // printf("tell: %ld\n");
         line_number++;
 
         tokenTime();
@@ -55,22 +53,20 @@ void executeCode(const char* nnp_path){
 
         current_line_type = getCurrentLineType(&big_storage);
 
-        executeTheLine(&line_memory, current_line_type);
-    
-        freeNonVarsInObjArr(&line_memory, &big_storage);
-
-        endOfLineLogging(false);
-
-        tell = ftell(nnp_code);
+        executeTheLine(&line_memory, current_line_type, &big_storage);  //putchar('A');fflush(stdout);
+        freeNonVarsInObjArr(&line_memory, &big_storage);                //putchar('B');fflush(stdout);
+        endOfLineLogging(&big_storage, false);                          //putchar('C');fflush(stdout);
+        tell = ftell(nnp_code);                                         //putchar('\n');
     }
    
-    
+
+    freeCallStack();
     freeBlockTracker(&block_tracker);
     myFree(line_memory.objs);
     closeFile();
     freeTok_types();
     freeReader();
-    deepFreeBigStorage();
+    deepFreeStorage(&big_storage);
 
     logAllocations(MEMORY_STATE);
 }
@@ -84,39 +80,39 @@ void executeCode(const char* nnp_path){
 
 
 
-void initBigStorage(int size){
-    assert(size > 0 && big_storage.identifiers == NULL && big_storage.capacity == 0 && big_storage.length == 0 && big_storage.objs == NULL);
-    big_storage.objs = myMalloc(sizeof(object_p) * size);
-    big_storage.identifiers = myMalloc(sizeof(NnpStr) * size);
-    assert(big_storage.objs && big_storage.identifiers);
+void initStorage(Storage* p_store, int capacity){
+    assert(capacity > 0 && p_store->identifiers == NULL && p_store->capacity == 0 && p_store->length == 0 && p_store->objs == NULL);
+    p_store->objs = myMalloc(sizeof(object_p) * capacity);
+    p_store->identifiers = myMalloc(sizeof(NnpStr) * capacity);
+    assert(p_store->objs && p_store->identifiers);
 
-    big_storage.capacity = size;
-    big_storage.length = 0;
+    p_store->capacity = capacity;
+    p_store->length = 0;
 
-    loadPrebuiltsIntoStorage(&big_storage);
+    loadPrebuiltsIntoStorage(p_store);
 }
 
 
 
 
 
-void deepFreeBigStorage(){
-    assert(big_storage.objs && big_storage.identifiers && big_storage.capacity > 0);
+void deepFreeStorage(Storage* p_store){
+    assert(p_store->objs && p_store->identifiers && p_store->capacity > 0);
 
-    for(uint i = 0; i < big_storage.length; i++){
-        freeObj(big_storage.objs[i]);
-        freeNnpStr(  &(big_storage.identifiers[i])  );
+    for(uint i = 0; i < p_store->length; i++){
+        freeObj(p_store->objs[i]);
+        freeNnpStr(  &(p_store->identifiers[i])  );
     }
 
-    myFree(big_storage.objs);
-    myFree(big_storage.identifiers);
+    myFree(p_store->objs);
+    myFree(p_store->identifiers);
 
-    big_storage.capacity = 0;
-    big_storage.length = 0;
+    p_store->capacity = 0;
+    p_store->length = 0;
 }
 
 
-static void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store){
+void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store){
     // printf("length: %u\n\tObj[0]: %p\n", p_obj_arr->length, p_obj_arr->objs[0]);fflush(stdout);
     while(p_obj_arr->length > 0){
         for (uint i = 0; i < p_store->length; i++){
@@ -132,7 +128,7 @@ static void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store){
 }
 
 
-void endOfLineLogging(bool log_empty_lines){
+void endOfLineLogging(const Storage* p_store, bool log_empty_lines){
     if (log_empty_lines == false){
         extern Reader nian;
         if (nian.tok_ind_len == 0) return;
@@ -143,7 +139,7 @@ void endOfLineLogging(bool log_empty_lines){
     if (skip_execution)
         logMessage(MEMORY_STATE, "Skip Execution flag active\nNo level: %d, Block Level: %d\n", no_scope, block_tracker.length);
     else
-        logVariables(MEMORY_STATE, &big_storage, false);
+        logVariables(MEMORY_STATE, p_store, false);
     // logMessage(MEMORY_STATE, "No Scope: %d\tSkip Execution: %d\n", no_scope, skip_execution);
     // for (int i = 0; i < block_tracker.length; i++){
     //     logMessage(MEMORY_STATE, "block(%d)=%d\n", i, block_tracker.data[i].state);
@@ -297,12 +293,14 @@ no 0
 // static int popCount = 0, appendCount = 0;
 
 
-static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
+void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage* p_store){
     extern Reader nian;
     extern TokenTyper tok_types;
     assert(nian.charv && nian.token_indexes);
     assert(tok_types.types);
     assert(p_line_memory && p_line_memory->objs && p_line_memory->capacity >= 1);
+    
+    //printf("\t\tscope: %p\t%s\n", p_store, nian.charv);fflush(stdout);
 
     bool can_decrement_no = true;
     if (skip_execution){
@@ -313,14 +311,14 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
 
     switch(line_type){
     case LINE_ARITHMETIC:
-        condenseObjsAndOperators(p_line_memory);
+        condenseObjsAndOperators(p_store, p_line_memory);
         break;
     case LINE_CONDITIONAL:
         #pragma region LINECONDITIONAL
         assert(nian.tok_ind_len >= 2);
         if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
             no_scope++;
-            subCondenseObjsOperators(p_line_memory, NULL, 1, nian.tok_ind_len - 1);
+            subCondenseObjsOperators(p_store, p_line_memory, NULL, 1, nian.tok_ind_len - 1);
             if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                 logMessage(OUT, "Error, if's expression does not evaluate to one BoolObj");
                 exit(1);
@@ -337,7 +335,7 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
                 skip_execution = true;
                 // no_scope--;
             } else if (block_tracker.data[block_tracker.length - 1].state == BLOCK_IF_NOT_TRIGGERED){
-                subCondenseObjsOperators(p_line_memory, NULL, 2, nian.tok_ind_len - 1);
+                subCondenseObjsOperators(p_store, p_line_memory, NULL, 2, nian.tok_ind_len - 1);
                 if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                     logMessage(OUT, "Error, no if's expression does not evaluate to one BoolObj");
                     exit(1);
@@ -370,7 +368,7 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         switch (loop_type){
 
         case LOOP_BREAK: {
-            object_p break_label = getLoopsLabel();
+            object_p break_label = getLoopsLabel(p_store);
             if (break_label == NULL){
                 for (int i = block_tracker.length - 1; i >= 0; i--){
                     if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
@@ -407,7 +405,7 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
             }
         }
         case LOOP_CONTINUE: {
-            object_p continue_label = getLoopsLabel();
+            object_p continue_label = getLoopsLabel(p_store);
             if (continue_label == NULL){
                 for (int i = block_tracker.length - 1; i >= 0; i--){
                     if (block_tracker.data[i].state == BLOCK_LOOP_REEXECUTE){
@@ -438,14 +436,14 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
         }
         case LOOP_START:
             no_scope++;
-            subCondenseObjsOperators(p_line_memory, NULL, findLoopKeywordIndex() + 1, nian.tok_ind_len - 1);
+            subCondenseObjsOperators(p_store, p_line_memory, NULL, findLoopKeywordIndex() + 1, nian.tok_ind_len - 1);
             if (!(p_line_memory->length == 1 && *((Datatype_e*)(p_line_memory->objs[0])) == BOOL_OBJ)) {
                 logMessage(OUT, "Error, loop's expression does not evaluate to one BoolObj");
                 exit(1);
 
             } else if (((BoolObj*)(p_line_memory->objs[0]))->value == true){
 
-                appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE, .line_count = line_number - 1, .loop_label = getLoopsLabel()});
+                appendBlockTracker(&block_tracker, (struct BlockData){.loop_tell = tell, .state = BLOCK_LOOP_REEXECUTE, .line_count = line_number - 1, .loop_label = getLoopsLabel(p_store)});
             } else {
                 // printf("\nblocktracker.len 1: %d", block_tracker.length);
                 
@@ -459,9 +457,14 @@ static void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type){
 
         break;
         #pragma endregion
-    case LINE_CLASS_DECLARATION:
     case LINE_FUNC_DECLARATION:
-        puts("Class and Function Declaration unimplemented. Try again in a few weeks");
+        no_scope++;
+        storeUserFuncDeclaration(p_store, tell, line_number - 1);
+        appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number - 1});
+        skip_execution = true;
+        break;
+    case LINE_CLASS_DECLARATION:
+        puts("Class Declaration unimplemented. Try again in a few weeks");
         exit(1);
         break;
     case LINE_NO_SCOPE:

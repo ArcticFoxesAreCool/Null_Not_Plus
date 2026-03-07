@@ -13,7 +13,13 @@ void* myMalloc(size_t num_bytes){
     alloc_tracker.num_malloc++;
     alloc_tracker.mallocAndCallocBytes += num_bytes;
 
+#if 0
+    void* r = malloc(num_bytes);
+    printf("\tMalloc: %p\n", r);fflush(stdout);
+    return r;
+#else
     return malloc(num_bytes);
+#endif
 }
 
 void* myCalloc(size_t count, size_t size){
@@ -31,6 +37,9 @@ void* myRealloc(void* ptr, size_t new_size){
 
 void myFree(void* ptr){
     alloc_tracker.num_free++;
+#if 0
+    printf("\tFree:   %p\n", ptr);fflush(stdout);
+#endif
     free(ptr);
 }
 

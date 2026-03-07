@@ -3,6 +3,8 @@
 
 #include "../DynamicValuesH/Storage.h"
 
+#define STORAGE_INITIAL_CAPACITY 32
+
 #define SKIP_EXECUTION_UNTIL_INACTIVE -1
 
 enum TypeOfLine {
@@ -22,11 +24,15 @@ struct ScopeTracker {
 
 void executeCode(const char* nnp_path);
 
-void initBigStorage(int size);
+void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage* p_store);
 
-void deepFreeBigStorage();
+void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store);
 
-void endOfLineLogging(bool log_empty_lines);
+void initStorage(Storage* p_store, int capacity);
+
+void deepFreeStorage(Storage* p_store);
+
+void endOfLineLogging(const Storage* p_store, bool log_empty_lines);
 
 enum TypeOfLine getCurrentLineType(const Storage* p_store);
 

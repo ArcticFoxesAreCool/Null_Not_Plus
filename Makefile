@@ -1,6 +1,6 @@
+OPT=-O3
 
-
-CFLAGS=-Wall -Wextra -std=c17 -Wfatal-errors
+CFLAGS=-Wall -Wextra -std=c17 #-g -fsanitize=address -Wno-deprecated-declarations#-Wfatal-errors
 # make:
 
 # These have trailing /
@@ -23,11 +23,11 @@ interpert: $(OFILES)
 
 ofiles/%.o: src/cfiles/%.c
 	@mkdir -p $(dir $@)
-	clang $(CFLAGS) -c $< -o $@
+	clang $(CFLAGS) $(OPT) -c $< -o $@
 
 run:
 	make
-	./interpert
+	./interpert ./ExampleNNPfiles/function.nnp
 
 clean:
 	rm -r ofiles/*

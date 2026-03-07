@@ -13,7 +13,7 @@ static BoolObj* lessthanBool(object_p op1, BoolObj* op2);
 static BoolObj* noteqBool(object_p op1, BoolObj* op2);
 
 
-OperatorsStruct boolOperators = {
+static const OperatorsStruct boolOperators = {
     ._cast_bool = castBool,
     ._cast_datatype = castDatatype,
     ._cast_list = castList,
@@ -26,7 +26,7 @@ OperatorsStruct boolOperators = {
     ._noteq_bool = noteqBool
 };
 
-BuiltMethodsStruct boolMethods = BUILT_METHODS_STRUCT_NULL;
+static const BuiltMethodsStruct boolMethods = {0};
 
 
 BoolObj* constructBoolObj(uint8_t value){

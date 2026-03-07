@@ -33,8 +33,8 @@ typedef struct _BuiltMethodsStruct BuiltMethodsStruct;
 
 struct _ListObj{
     Datatype_e type;
-    OperatorsStruct* operators;
-    BuiltMethodsStruct* methods;
+    const OperatorsStruct* operators;
+    const BuiltMethodsStruct* methods;
     ObjArray values;
   };
 

@@ -201,7 +201,7 @@ void flushLogs(){
 }
 
 
-void logVariables(enum LoggingFileType whichFile, Storage* p_store, bool printPrebuiltFuncs){
+void logVariables(enum LoggingFileType whichFile, const Storage* p_store, bool printPrebuiltFuncs){
     logMessage(whichFile, "Local Variables:\n");
     char* st;
 

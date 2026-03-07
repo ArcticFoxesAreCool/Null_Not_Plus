@@ -36,10 +36,15 @@ object_p copyObj(const object_p this_obj){
                 return  (object_p)constructStrObj_char( ((StrObj*)this_obj)->value.string.dyn_str );
             }
 
-        case FUNC_OBJ:
-            ret = myMalloc(sizeof(FuncObj));
+        case COMP_FUNC_OBJ:
+            ret = myMalloc(sizeof(CompFuncObj));
             assert(ret && "malloc a func obj failed while copying obj");
-            memcpy(ret, this_obj, sizeof(FuncObj));
+            memcpy(ret, this_obj, sizeof(CompFuncObj));
+            return ret;
+        case USER_FUNC_OBJ:
+            ret = myMalloc(sizeof(UserFuncObj));
+            assert(ret);
+            memcpy(ret, this_obj, sizeof(UserFuncObj));
             return ret;
         default:
             puts("copy object datatype not detected");
@@ -131,7 +136,7 @@ char* objValtoDynAllocStr(object_p obj){
             case STR_OBJ:
                 sprintf(dst, "StrObj");
                 break;
-            case FUNC_OBJ:
+            case COMP_FUNC_OBJ:
                 sprintf(dst, "FuncObj");
                 break;
             case CLASS_OBJ:
@@ -185,9 +190,13 @@ char* objValtoDynAllocStr(object_p obj){
         strcat(dst, "]");
         }
         break;
-    case FUNC_OBJ: 
-        dst = myMalloc(32); assert(dst);
-        sprintf(dst, "FuncObj(Argc = %d)", ((FuncObj*)obj)->num_args);
+    case COMP_FUNC_OBJ: 
+        dst = myMalloc(64); assert(dst);
+        sprintf(dst, "CompFuncObj(Argc = %d)", ((CompFuncObj*)obj)->num_args);
+        break;
+    case USER_FUNC_OBJ:
+        dst = myMalloc(64); assert(dst);
+        sprintf(dst, "UserFuncObj(Argc = %d)", ((UserFuncObj*)obj)->num_args);
         break;
     default:
         // printf("dat: %d\n", dat);
@@ -280,15 +289,14 @@ bool objsEqual(const object_p obj1, const object_p obj2){
         return twoListsEqual(obj1, obj2);
     case STR_OBJ:
         return NnpStrEq(  &(((StrObj*)obj1)->value),  &(((StrObj*)obj2)->value) );
-    case FUNC_OBJ: {
-        enum PrebuiltFuncs_e function_type_1 = ((FuncObj*)obj1)->func_type;
-        if (function_type_1 != ((FuncObj*)obj2)->func_type)
-            return false;
-        if (function_type_1 == USER_FUNC){
-            return ((FuncObj*)obj1)->f_loc == ((FuncObj*)obj2)->f_loc;
+    case COMP_FUNC_OBJ: {
+        enum PrebuiltFuncs_e function_type_1 = ((CompFuncObj*)obj1)->func_type;
+        return (function_type_1 == ((CompFuncObj*)obj2)->func_type);
+        // if (function_type_1 != ((CompFuncObj*)obj2)->func_type)
+        //     return false;
         }
-        return true;
-    }
+    case USER_FUNC_OBJ:
+        return ((UserFuncObj*)obj1)->declaration_tell   ==   ((UserFuncObj*)obj2)->declaration_tell;
 
     case INSTANCE_OBJ:
     case CLASS_OBJ:

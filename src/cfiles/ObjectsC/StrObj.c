@@ -20,7 +20,7 @@ static BoolObj* noteqStr(object_p op1, StrObj* op2);
 
 
 
-OperatorsStruct strOperators = {
+static const OperatorsStruct strOperators = {
     ._add_str = addStr,
     ._mult_num = multNum,
     ._cast_bool = castBool,
@@ -39,7 +39,7 @@ static StrObj* str_sub_string(StrObj* st, NumObj* start, NumObj* end);
 static NumObj* str_length(StrObj* st);
 
 
-BuiltMethodsStruct strMethods = {
+static const BuiltMethodsStruct strMethods = {
     .str_len = str_length,
     .substring = str_sub_string
 };
@@ -336,9 +336,9 @@ static StrObj* str_sub_string(StrObj* st, NumObj* start, NumObj* end){
 
 
     if (ret->value.union_mode == NNPSTR_UNIONMODE_BUFFER){
-        logFuncStart(FUNCTION_CALLS, "start sub_string method StrObj: %s\n", ret->value.string.buffer);
+        logFuncStart(FUNCTION_CALLS, "finish sub_string method StrObj: %s\n", ret->value.string.buffer);
     } else {
-        logFuncStart(FUNCTION_CALLS, "start sub_string method StrObj: %s\n", ret->value.string.dyn_str);
+        logFuncStart(FUNCTION_CALLS, "finish sub_string method StrObj: %s\n", ret->value.string.dyn_str);
     }
     return ret;
 }

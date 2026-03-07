@@ -54,7 +54,7 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
     if (num_params == 0){ return -1; }
     int count = 0;
     NnpStr temp_str = {0};
-    FuncObj* temp_func_ref;
+    object_p temp_func_ref;
     // puts("\tA");fflush(stdout);
     for(int i = larrow_index + 1; i <= stop_index; i++){
         // printf("%s, %d\n", nian.charv + nian.token_indexes[i], tok_types.types[i]);
@@ -68,10 +68,16 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
                 setNnpStr(nian.charv + nian.token_indexes[i - 1], &temp_str);
                 temp_func_ref = getFromStorage(p_store, &temp_str);
                 freeNnpStr(&temp_str);
-                if (temp_func_ref->type != FUNC_OBJ){logMessage(FILE_PARSING, "Invalid function call on non-FuncObj\n"); exit(1);}
-                if (temp_func_ref->func_type == USER_FUNC){puts("Have not implemented user-functions yet"); exit(1);}
+                if (*((Datatype_e*)temp_func_ref) != COMP_FUNC_OBJ && *((Datatype_e*)temp_func_ref) != USER_FUNC_OBJ){logMessage(FILE_PARSING, "Invalid function call on non-FuncObj\n"); exit(1);}
 
-                count -= temp_func_ref->num_args;
+                int num_parameters;
+                if (*((Datatype_e*)temp_func_ref) == COMP_FUNC_OBJ){
+                    num_parameters = ((CompFuncObj*)temp_func_ref)->num_args;
+                } else {
+                    num_parameters = ((UserFuncObj*)temp_func_ref)->num_args;
+                }
+
+                count -= num_parameters;
             } else if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0) {
                 if (count == num_params) return i - 1;
                 else goto outOfLoop;
@@ -89,7 +95,7 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
     }
     outOfLoop:
     // printf("NUM PARAMS %d", count);
-    logMessage(FILE_PARSING, "Function Arguments not found\n");
+    logMessage(FILE_PARSING, "Function Arguments not found, cannot use variable assignment inside function arguments\n");
     exit(1);
 }
 
@@ -98,14 +104,14 @@ int getFunctionFinalParameterIndex(int num_params, int larrow_index, int stop_in
     // SPEAK_F, LISTEN_F, ASCII_TO_CH_F
 
 
-void resolveFunction(ObjArray* p_obj_arr, int num_args){
+void resolveCompFunction(ObjArray* p_obj_arr, int num_args){
     // printf("ARG: %d\nLEN: %u\n", num_args, p_obj_arr->length);fflush(stdout);
     // for (uint i = 0; i < p_obj_arr->length; i++){printf("\t[%u]: %p\n", i, p_obj_arr->objs[i]);}
     assert(p_obj_arr && p_obj_arr->capacity >= (uint)num_args + 1 && p_obj_arr->length >= (uint)num_args + 1 && p_obj_arr->objs);
     assert(num_args >= 0);
-    FuncObj* func = p_obj_arr->objs[p_obj_arr->length - num_args - 1];
+    CompFuncObj* func = p_obj_arr->objs[p_obj_arr->length - num_args - 1];
     enum PrebuiltFuncs_e function_type = func->func_type;
-    
+   
     bool is_method;
     switch (function_type){
         case TRUNCATE_M:
@@ -117,10 +123,13 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         case SET_M:
             is_method = true;
             break;
+        case USER_FUNC:
+            logMessage(OUT, "StandardMethodsFunctions.c resolveCompFunction() impossible function_type\n");
+            exit(1);
+            break;
         default:
             is_method = false;
     }
-    
     // puts("A");//fflush(stdout);
     // printf("\ttype: %d\n", *((Datatype_e*)(p_obj_arr->objs[0])));fflush(stdout);
     
@@ -129,9 +138,7 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         method_obj = p_obj_arr->objs[p_obj_arr->length - num_args - 2];
         // printf("\t%s\n", ((StrObj*)method_obj)->value.string.buffer);fflush(stdout);
     }
-    
-    // puts("B");fflush(stdout);
-    // puts("\tA");fflush(stdout);
+   
     object_p reted;
     switch(function_type){
     case USER_FUNC:
@@ -177,12 +184,15 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         exit(1);
     }
 
-    // puts("\tB");fflush(stdout);
+   
+   
 
 
     for(int i = 0; i < num_args + 1; i++){
         popInObjArray(p_obj_arr, p_obj_arr->length - 1);
     }
+   
+
     if (is_method && reted){
         freeObj(p_obj_arr->objs[p_obj_arr->length - 1]);
         p_obj_arr->objs[p_obj_arr->length - 1] = reted;
@@ -191,7 +201,5 @@ void resolveFunction(ObjArray* p_obj_arr, int num_args){
         freeObj(reted);
         // p_obj_arr->objs[p_obj_arr->length] = reted;
     }
-
-    // puts("\tC");fflush(stdout);
 
 }

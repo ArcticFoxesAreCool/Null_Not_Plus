@@ -11,12 +11,15 @@ enum BlockState {
     BLOCK_NOW_NOT_EXECUTE,
 
     BLOCK_LOOP_LEAVE,
-    BLOCK_LOOP_REEXECUTE
+    BLOCK_LOOP_REEXECUTE,
+
+    BLOCK_FUNCTION
 };
 
 struct BlockData {
 
     object_p loop_label;
+
     long loop_tell;
     int line_count;
     
@@ -45,7 +48,7 @@ void popBlocktracker(struct BlockTracker* p_block_tracker);
 
 void returnToLoop(const struct BlockTracker* p_block_tracker);
 
-object_p getLoopsLabel();
+object_p getLoopsLabel(Storage* p_store);
 
 enum LoopBreakContinue loopLineIsBreakContinue();
 
