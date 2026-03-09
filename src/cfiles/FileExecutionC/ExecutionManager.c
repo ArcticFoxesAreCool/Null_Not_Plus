@@ -53,10 +53,10 @@ void executeCode(const char* nnp_path){
 
         current_line_type = getCurrentLineType(&big_storage);
 
-        executeTheLine(&line_memory, current_line_type, &big_storage);  //putchar('A');fflush(stdout);
-        freeNonVarsInObjArr(&line_memory, &big_storage);                //putchar('B');fflush(stdout);
-        endOfLineLogging(&big_storage, false);                          //putchar('C');fflush(stdout);
-        tell = ftell(nnp_code);                                         //putchar('\n');
+        executeTheLine(&line_memory, current_line_type, &big_storage);
+        freeNonVarsInObjArr(&line_memory, &big_storage);
+        endOfLineLogging(&big_storage, false);
+        tell = ftell(nnp_code);
     }
    
 
@@ -244,8 +244,17 @@ static bool checkShouldResumeExecute(enum TypeOfLine line_type){
     
     case LINE_CONDITIONAL:
     case LINE_CLASS_DECLARATION:
-    case LINE_FUNC_DECLARATION:
         no_scope++;
+        break;
+    case LINE_FUNC_DECLARATION: {
+        for (int i = 0; i < block_tracker.length; i++){
+            if (block_tracker.data[i].state == BLOCK_FUNCTION){
+                return false;
+            }
+        }
+        no_scope++;
+        break;
+    }
     default:
         break;
     }

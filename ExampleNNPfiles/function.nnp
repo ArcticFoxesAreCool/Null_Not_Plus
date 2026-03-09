@@ -1,14 +1,28 @@
 
+func <- fn a
+    fn <- a
+no
+
+func <- speak! "PRINT!"
 
 
-test <- 
+printO <- a b
     asciiToCh! <- 10 -> \n
-    speak! <- \n + "string here" + \n
+    speak! <- a ~-> StrObj + b + \n
 no
 
 
-test <- 
-test <- 
-test <- 
+printO <- 21 "4"
+printO <- "Hello!" "4" 
+printO <- DatatypeObj "4"
 
-speak! <- "Done"
+
+looper <- self n
+    if n > 0
+        asciiToCh! <- 10 -> \n
+        speak! <- n ~-> StrObj + \n
+        self <- self n ~+ 1
+    no
+no
+
+looper <- looper 5
