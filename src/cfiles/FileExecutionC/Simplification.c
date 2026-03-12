@@ -42,7 +42,6 @@ void functionCalled(Storage* scope, ObjArray* p_obj_arr, int* p_curr_tok_index, 
 
     if (dat == USER_FUNC_OBJ){
         resolveUserFunc(p_obj_arr, arg_count);
-        // puts("RESOLVED!");fflush(stdout);
     } else {
         resolveCompFunction(p_obj_arr, arg_count);
     }

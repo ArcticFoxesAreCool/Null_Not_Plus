@@ -1,0 +1,12 @@
+
+asciiToCh! <- 10 -> \n
+
+reter <-
+    speak! <- "Function Run"
+    "RETURN!" ->
+    speak! <- "Do not print!"
+no
+
+
+
+speak! <- reter <- + \n * 3

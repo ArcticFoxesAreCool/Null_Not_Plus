@@ -52,6 +52,11 @@ void executeCode(const char* nnp_path){
 
 
         current_line_type = getCurrentLineType(&big_storage);
+        if (!skip_execution && current_line_type == LINE_RETURN){
+            freeNonVarsInObjArr(&line_memory, &big_storage);
+            endOfLineLogging(&big_storage, false);
+            break;
+        }
 
         executeTheLine(&line_memory, current_line_type, &big_storage);
         freeNonVarsInObjArr(&line_memory, &big_storage);
@@ -166,6 +171,8 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
     
     if (findLoopKeywordIndex() != -1){
         return LINE_LOOP;
+    } else if (strncmp(nian.charv + nian.token_indexes[nian.tok_ind_len - 1], "->", 3) == 0){
+        return LINE_RETURN;
     } else if (strncmp(nian.charv + nian.token_indexes[0], "if", 3) == 0){
         return LINE_CONDITIONAL;
     }
@@ -493,6 +500,11 @@ void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage*
         // printf("popcount: %d\n", ++popCount);
         break;
     case LINE_BLANK:
+        break;
+
+    case LINE_RETURN:
+        puts("SHOULD NOT EXECUTE RETURN STATEMENT");
+        exit(1);
         break;
     }
 }

@@ -26,4 +26,6 @@ void popAndFSeekCallStack();
 
 void resolveUserFunc(ObjArray* p_obj_arr, int num_args);
 
+object_p getReturnValue(Storage* p_store, ObjArray* p_obj_array);
+
 #endif

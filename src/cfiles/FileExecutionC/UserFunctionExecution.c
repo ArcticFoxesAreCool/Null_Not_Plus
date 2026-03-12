@@ -94,7 +94,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     extern FILE* nnp_code;
     extern struct BlockTracker block_tracker;
     extern int no_scope;
-    
+
     assert(nnp_code && no_scope >= 0);
     assert(p_obj_arr && p_obj_arr->capacity >= (uint)num_args + 1 && p_obj_arr->length >= (uint)num_args + 1 && p_obj_arr->objs);
     assert(num_args >= 0);
@@ -122,6 +122,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     setParameters(p_obj_arr, &(call_stack.local_vars[call_stack.length - 1]), num_args);
     
     enum TypeOfLine line_type;
+    object_p ret = NULL;
 
     tell = ftell(nnp_code);
     while (no_scope > initial_no_scope && readLine()){
@@ -130,10 +131,19 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
         getTok_types();
 
         line_type = getCurrentLineType(&(call_stack.local_vars[call_stack.length - 1]));
-        // if (line_type == LINE_NO_SCOPE && no_scope == initial_no_scope + 1){
-        //     freeNonVarsInObjArr(&line_memory, &(call_stack.local_vars[call_stack.length - 1]));
-        //     break;
-        // }
+
+        if (line_type == LINE_RETURN){
+            ret = getReturnValue(&(call_stack.local_vars[call_stack.length - 1]), &line_memory);
+            if (ret){
+                appendInObjArray(p_obj_arr, ret);
+            }
+
+            freeNonVarsInObjArr(&line_memory, &(call_stack.local_vars[call_stack.length - 1]));
+            endOfLineLogging(&(call_stack.local_vars[call_stack.length - 1]), false);
+            popBlocktracker(&block_tracker);
+            break;
+        }
+
         executeTheLine(&line_memory, line_type, &(call_stack.local_vars[call_stack.length - 1]));
         freeNonVarsInObjArr(&line_memory, &(call_stack.local_vars[call_stack.length - 1]));
         endOfLineLogging(&(call_stack.local_vars[call_stack.length - 1]), false);
@@ -147,11 +157,11 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     /*
     BECAUSE THERE ARE NO RETURNS #todo, JUST CLEAR ARGS and USERFUNC_OBJ
     */
-    // for (int i = 0; i < num_args + 1; i++){
-    //     // printf("len: %u\n", p_obj_arr->length); fflush(stdout);
-    //     popInObjArray(p_obj_arr, p_obj_arr->length - 1);
-    // }
-    // ((UserFuncObj*)(p_obj_arr->objs[p_obj_arr->length - 1]))->num_args = -1;
+    int index_offset = ret ? -2 : -1;
+    for (int i = 0; i < num_args + 1; i++){
+        // printf("len: %u\n", p_obj_arr->length); fflush(stdout);
+        popInObjArray(p_obj_arr, p_obj_arr->length + index_offset);
+    }
 
     no_scope = initial_no_scope;
     popAndFSeekCallStack();
@@ -164,7 +174,7 @@ static void setParameters(const ObjArray* p_obj_arr, Storage* p_store, int num_a
     extern Reader nian;
     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.tok_ind_len >= 2);
 
-    assert(p_obj_arr->length == (uint)(1 + num_args));
+    assert(p_obj_arr->length >= (uint)(1 + num_args));
 
     
 
@@ -180,4 +190,21 @@ static void setParameters(const ObjArray* p_obj_arr, Storage* p_store, int num_a
     freeNnpStr(&parameter_name);
 
 
+}
+
+
+object_p getReturnValue(Storage* p_store, ObjArray* p_obj_array){
+    extern Reader nian;
+    assert(p_store && p_store->capacity > 0 && p_store->length > 0 && p_store->objs && p_store->identifiers);
+    assert(nian.charv && nian.sz > 0 && nian.tok_ind_len > 0 && nian.tok_ind_capacity > 0 && nian.token_indexes);
+    assert(strncmp("->", nian.charv + nian.token_indexes[nian.tok_ind_len - 1], 3) == 0);
+    
+    if (nian.tok_ind_len == 1){
+        return NULL;
+    }
+    subCondenseObjsOperators(p_store, p_obj_array, NULL, 0, nian.tok_ind_len - 2);
+    if (p_obj_array->length > 0){
+        return p_obj_array->objs[p_obj_array->length - 1];
+    }
+    return NULL;
 }
