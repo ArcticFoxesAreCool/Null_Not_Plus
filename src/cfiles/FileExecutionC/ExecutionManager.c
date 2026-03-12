@@ -476,7 +476,7 @@ void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage*
     case LINE_FUNC_DECLARATION:
         no_scope++;
         storeUserFuncDeclaration(p_store, tell, line_number - 1);
-        appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number - 1});
+        appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number});
         skip_execution = true;
         break;
     case LINE_CLASS_DECLARATION:
