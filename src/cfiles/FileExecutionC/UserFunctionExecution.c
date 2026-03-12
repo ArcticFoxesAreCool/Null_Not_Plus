@@ -99,8 +99,6 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     assert(p_obj_arr && p_obj_arr->capacity >= (uint)num_args + 1 && p_obj_arr->length >= (uint)num_args + 1 && p_obj_arr->objs);
     assert(num_args >= 0);
 
-    int initial_block_tracker_length = block_tracker.length;
-
     appendCallStack(tell, line_number);
     appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number - 1});
 
@@ -143,9 +141,10 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
             freeNonVarsInObjArr(&line_memory, &(call_stack.local_vars[call_stack.length - 1]));
             endOfLineLogging(&(call_stack.local_vars[call_stack.length - 1]), false);
 
-            while (block_tracker.length > initial_block_tracker_length){
-                popBlocktracker(&block_tracker);
-            }
+            // while (block_tracker.data[block_tracker.length - 1].state != BLOCK_FUNCTION){
+            //     popBlocktracker(&block_tracker);
+            // }
+            popBlocktracker(&block_tracker);
 
             break;
         }
