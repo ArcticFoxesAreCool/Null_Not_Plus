@@ -29,7 +29,16 @@ run:
 	make
 	./interpert ./ExampleNNPfiles/function.nnp
 
+
+fast: $(OFILES)
+	clang $(CFLAGS) -c -DFAST ./src/cfiles/interperter.c -o ./ofiles/interperter.o
+	clang $(CFLAGS) $^ -o interpert
+
+slow: $(OFILES)
+	clang $(CFLAGS) -c ./src/cfiles/interperter.c -o ./ofiles/interperter.o
+	clang $(CFLAGS) $^ -o interpert
+
 clean:
-	rm -r ofiles/*
-	rm interpert
-	rm logs/*
+	-rm -r ofiles/*
+	-rm interpert
+	-rm logs/*

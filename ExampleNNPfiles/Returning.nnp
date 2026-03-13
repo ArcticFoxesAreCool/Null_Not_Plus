@@ -11,6 +11,51 @@ no
 
 
 
+charToAscii <- s_ch
+    0 -> i
+    loop i < 256
+
+        asciiToCh! <- i -> ch
+        
+        if s_ch = ch
+            i ->
+        no
+        
+        i + 1 -> i
+    no
+    -1 ->
+no
+
+
+stringToAscii2 <- str fn
+
+    [ ] -> retList
+    0 -> index
+    str strLen! <- -> length
+
+    loop index < length
+        
+        str substring! <- index index -> s_ch
+        fn <- s_ch -> ch
+
+        retList + ch -> retList
+        index + 1 -> index
+    no
+    retList ->
+no
+
+
+listen! <- -> a
+stringToAscii2 <- a charToAscii -> l
+
+
+speak! <- l ~-> StrObj + \n
+->
+
+
+
+
+
 stringToAscii <- str
 
     [ ] -> retList
@@ -50,44 +95,4 @@ speak! <- l ~-> StrObj + \n
 
 
 
-
-
-
-
-
-
 ->
-
-charToAscii <- s_ch
-    0 -> i
-    loop i < 256
-
-        asciiToCh! <- i -> ch
-        
-        if s_ch = ch
-            i ->
-        no
-        
-        i + 1 -> i
-    no
-    -1 ->
-no
-
-
-
-stringToAscii2 <- str fn
-
-    [ ] -> retList
-    0 -> index
-    str strLen! <- -> length
-
-    loop index < length
-        
-        str substring! <- index index -> s_ch
-        fn <- s_ch -> ch
-
-        retList + ch -> retList
-        index + 1 -> index
-    no
-    retList ->
-no

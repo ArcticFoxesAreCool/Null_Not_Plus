@@ -94,6 +94,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     extern FILE* nnp_code;
     extern struct BlockTracker block_tracker;
     extern int no_scope;
+    extern bool skip_execution;
 
     assert(nnp_code && no_scope >= 0);
     assert(p_obj_arr && p_obj_arr->capacity >= (uint)num_args + 1 && p_obj_arr->length >= (uint)num_args + 1 && p_obj_arr->objs);
@@ -132,7 +133,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
 
         line_type = getCurrentLineType(&(call_stack.local_vars[call_stack.length - 1]));
 
-        if (line_type == LINE_RETURN){
+        if (line_type == LINE_RETURN && !skip_execution){
             ret = getReturnValue(&(call_stack.local_vars[call_stack.length - 1]), &line_memory);
             if (ret){
                 appendInObjArray(p_obj_arr, ret);
@@ -144,6 +145,11 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
             // while (block_tracker.data[block_tracker.length - 1].state != BLOCK_FUNCTION){
             //     popBlocktracker(&block_tracker);
             // }
+            // printf("Line: %d\n", line_number);
+            while (block_tracker.data[block_tracker.length - 1].state != BLOCK_FUNCTION){
+                // printf("\tBlock state[%d]: %d\n", block_tracker.length - 1, block_tracker.data[block_tracker.length - 1].state);
+                popBlocktracker(&block_tracker);
+            }
             popBlocktracker(&block_tracker);
 
             break;
