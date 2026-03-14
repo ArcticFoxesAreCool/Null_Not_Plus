@@ -56,6 +56,30 @@ speak! <- l ~-> StrObj + \n
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 stringToAscii <- str
 
     [ ] -> retList

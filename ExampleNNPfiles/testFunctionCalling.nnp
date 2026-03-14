@@ -33,5 +33,3 @@ speak! <- "Hello" + " " + "World"
 "Test string here" substring! <- 5 11
 
 
-
-"Hello World" + asciitoCh! <- 10

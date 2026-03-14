@@ -7,3 +7,5 @@ listen! <- ~-> NumObj -> input
 input * input * hexagonal_constant ~-> StrObj -> area_str
 
 speak! <- \n + "Your area is... " + area_str + "!" + \n
+
+

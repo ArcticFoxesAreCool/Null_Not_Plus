@@ -1,0 +1,23 @@
+asciiToCh! <- 10 -> \n
+
+0 -> a + 1 -> b
+0 -> n
+
+speak! <- "Enter the fiboncci number you wish to calculate" + \n
+listen! <- ~-> NumObj -> calculated_number -> calculated_number
+
+loop calculated_number + 1 > n
+
+    if n = calculated_number
+        speak! <- "fib("
+        speak! <- n ~-> StrObj + ") = "
+        speak! <- a ~-> StrObj + \n
+    no
+
+    a + b -> c
+    b -> a
+    c -> b
+    
+    n + 1 -> n
+no
+

@@ -1,0 +1,29 @@
+asciiToCh! <- 10 -> \n
+speak! <- "Want to hear this?" + \n
+
+
+[ "y" + \n  "n" + \n ] -> test_cases
+
+
+listen! <- -> input
+if test_cases . 0 = input
+    speak! <- "if triggered" + \n
+
+    listen! <- -> input
+    if test_cases . 0 = input
+        speak! <- "YYY" + \n
+    no if test_cases . 1 = input
+        speak! <- "NNN" + \n
+    no now
+        speak! <- "abc" + \n
+    no
+
+no if test_cases . 1 = input
+    speak! <- "else if 2 triggered" + \n
+
+no now
+    speak! <- "else triggered" + \n
+no
+
+
+speak! <- "Finished Interpertation" + \n

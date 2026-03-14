@@ -1,0 +1,15 @@
+asciiToCh! <- 10 -> \n
+
+0 -> i
+loop i < 10
+
+    i -> j
+    loop j > 0
+
+        speak! <- j ~-> StrObj + \n
+        j ~+ 1 -> j
+
+    no
+
+    i + 1 -> i
+no

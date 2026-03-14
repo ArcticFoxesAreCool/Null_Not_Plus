@@ -16,3 +16,10 @@ speak! <- lst2 ~-> StrObj + \n
 
 lst2 find! <- [ "inside sublist!" ] -> location
 speak! <- location ~-> StrObj + \n
+
+speak! <- "append list" + \n
+
+
+lst2 + [ ] + [ "test" [ ] ] -> lst2
+lst2 set! <- 4 5 -> lst2
+speak! <- lst2 ~-> StrObj + \n

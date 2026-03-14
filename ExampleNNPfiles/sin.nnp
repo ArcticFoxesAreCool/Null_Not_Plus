@@ -1,0 +1,38 @@
+
+
+
+asciiToCh! <- 10 -> \n
+speak! <- "Input Angle: "
+listen! <- ~-> NumObj -> input_angle
+
+20 -> precision
+
+input_angle -> output
+
+-1 -> will_sub
+
+3 -> i
+loop i < precision
+
+    i -> n
+    input_angle -> numerator
+    loop n > 1
+        numerator * input_angle -> numerator
+        n ~+ 1 -> n
+    no
+
+    i -> denominator ~+ 1 -> n 
+    loop n > 1
+        denominator * n -> denominator
+        n ~+ 1 -> n
+    no
+
+    
+    numerator ~* denominator * will_sub -> numerator
+    will_sub * -1 -> will_sub
+    output + numerator -> output
+
+    i + 2 -> i
+no
+
+speak! <- output ~-> StrObj + \n
