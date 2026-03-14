@@ -1,0 +1,14 @@
+
+maybeFail <- a
+    if a ~-> NumObj ~= 0.0
+        a ->
+    no
+no
+
+"Err" -> ERROR_CODE
+
+ERROR_CODE maybeFail <- "a" -> var
+ERROR_CODE maybeFail <- "100" -> var2
+
+asciiToCh! <- 10 -> \n
+speak! <- var + \n + var2 + \n
