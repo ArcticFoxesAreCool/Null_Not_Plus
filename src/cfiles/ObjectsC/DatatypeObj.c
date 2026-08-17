@@ -127,7 +127,11 @@ static StrObj* castStr(object_p op){
 static BoolObj* eqDatatype(object_p op1, DatatypeObj* op2){
     logFuncStart(FUNCTION_CALLS, "start equals DatatypeObj to DatatypeObj\n");
 
-    BoolObj* ret = constructBoolObj(  ((DatatypeObj*)op1)->value == op2->value  );
+    bool is_equal = ((DatatypeObj*)op1)->value == op2->value;
+    if ((((DatatypeObj*)op1)->value == COMP_FUNC_OBJ || ((DatatypeObj*)op1)->value == USER_FUNC_OBJ) && (op2->value == COMP_FUNC_OBJ || op2->value == USER_FUNC_OBJ)){
+        is_equal = true;
+    }
+    BoolObj* ret = constructBoolObj(  is_equal  );
 
     logFuncEnds(FUNCTION_CALLS, "finish equals DatatypeObj to DatatypeObj: %u\n", ret->value);
 
@@ -137,7 +141,12 @@ static BoolObj* eqDatatype(object_p op1, DatatypeObj* op2){
 static BoolObj* noteqDatatype(object_p op1, DatatypeObj* op2){
     logFuncStart(FUNCTION_CALLS, "start equals DatatypeObj to DatatypeObj\n");
 
-    BoolObj* ret = constructBoolObj(  ((DatatypeObj*)op1)->value != op2->value  );
+    bool is_equal = ((DatatypeObj*)op1)->value == op2->value;
+    if ((((DatatypeObj*)op1)->value == COMP_FUNC_OBJ || ((DatatypeObj*)op1)->value == USER_FUNC_OBJ) && (op2->value == COMP_FUNC_OBJ || op2->value == USER_FUNC_OBJ)){
+        is_equal = true;
+    }
+
+    BoolObj* ret = constructBoolObj(  !is_equal  );
 
     logFuncEnds(FUNCTION_CALLS, "finish equals DatatypeObj to DatatypeObj: %u\n", ret->value);
 

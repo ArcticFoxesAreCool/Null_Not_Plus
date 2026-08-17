@@ -79,3 +79,63 @@ void setInStorage(Storage* p_store, const NnpStr* name, object_p new_val){
         }
     }
 }
+
+
+
+void initStorage(Storage* p_store, int capacity){
+    assert(capacity > 0 && p_store->identifiers == NULL && p_store->capacity == 0 && p_store->length == 0 && p_store->objs == NULL);
+    p_store->objs = myMalloc(sizeof(object_p) * capacity);
+    p_store->identifiers = myMalloc(sizeof(NnpStr) * capacity);
+    assert(p_store->objs && p_store->identifiers);
+
+    p_store->capacity = capacity;
+    p_store->length = 0;
+
+    loadPrebuiltsIntoStorage(p_store);
+}
+
+
+
+
+
+void freeStorageContents(Storage* p_store){
+    assert(p_store->objs && p_store->identifiers && p_store->capacity > 0);
+
+    for(uint i = 0; i < p_store->length; i++){
+        freeObj(p_store->objs[i]);
+        freeNnpStr(  &(p_store->identifiers[i])  );
+    }
+
+    myFree(p_store->objs);
+    myFree(p_store->identifiers);
+
+    p_store->capacity = 0;
+    p_store->length = 0;
+}
+
+
+
+
+
+Storage deepCopyStorage(Storage store){
+    Storage ret = {
+        .capacity = store.capacity,
+        .length = store.length
+    };
+    if (ret.capacity == 0) return ret;
+
+    ret.identifiers = myMalloc(sizeof(NnpStr) * ret.capacity);
+    ret.objs = myMalloc(sizeof(object_p) * ret.capacity);
+    assert(ret.objs && ret.identifiers);
+
+    for (uint i = 0; i < store.length; i++){
+        if (store.identifiers[i].union_mode == NNPSTR_UNIONMODE_BUFFER){
+            ret.identifiers[i] = makeNnpStr(store.identifiers[i].string.buffer);
+        } else {
+            ret.identifiers[i] = makeNnpStr(store.identifiers[i].string.dyn_str);
+        }
+        ret.objs[i] = copyObj(store.objs[i]);
+    }
+
+    return ret;
+}

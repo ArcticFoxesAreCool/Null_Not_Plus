@@ -25,7 +25,7 @@
 #include "LoggingH/LogMessage.h"
 #include "LoggingH/MemoryAllocationTracking.h"
 
-// ALL OBJECTS STRUCTURE:
+// ALL VALUE OBJECTS STRUCTURE:
 // 1. datatype enum
 // 2. operators struct pointer
 // 3. methods struct pointer
@@ -34,15 +34,21 @@
 // This order because the first three members of the struct are all constant size
 // but the last is object dependent
 
+// Value Objects
 #include "ObjectsH/NumObj.h"
 #include "ObjectsH/BoolObj.h"
 #include "ObjectsH/DatatypeObj.h"
 #include "ObjectsH/ListObj.h"
 #include "ObjectsH/StrObj.h"
 
+// Commander Objects
+// ALL COMMANDER OBJECT STRUCTURE:
+// 1. datatype enum
+// 2. custom
 #include "ObjectsH/CompFuncObj.h"
 #include "ObjectsH/UserFuncObj.h"
-
+#include "ObjectsH/ClassObj.h"
+#include "ObjectsH/InstanceObj.h"
 
 
 #include "DynamicValuesH/Storage.h"
@@ -66,6 +72,7 @@
 #include "FileExecutionH/ExecutionManager.h"
 #include "FileExecutionH/UserFunctionExecution.h"
 #include "FileExecutionH/BlockTracking.h"
+#include "FileExecutionH/ClassHandling.h"
 
 
 

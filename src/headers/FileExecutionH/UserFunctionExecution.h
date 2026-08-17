@@ -28,4 +28,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args);
 
 object_p getReturnValue(Storage* p_store, ObjArray* p_obj_array);
 
+void setParameters(const ObjArray* p_obj_arr, Storage* p_store, int num_args);
+
+
 #endif

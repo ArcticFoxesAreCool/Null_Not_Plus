@@ -9,4 +9,6 @@ void assignVar(Storage* p_store, ObjArray* p_line_stack, const NnpStr* identifie
 
 void storeUserFuncDeclaration(Storage* p_store, long decl_tell, int line_number);
 
+void storeClassDeclaration(Storage* p_store, long decl_tell, int line_number);
+
 #endif

@@ -13,7 +13,8 @@ enum BlockState {
     BLOCK_LOOP_LEAVE,
     BLOCK_LOOP_REEXECUTE,
 
-    BLOCK_FUNCTION
+    BLOCK_FUNCTION,
+    BLOCK_CLASS
 };
 
 struct BlockData {

@@ -29,6 +29,12 @@ void appendStorage(Storage* p_store, const object_p obj, const NnpStr* name);
 void removeStorage(Storage* p_store, const NnpStr* name);
 
 void freeStorage(Storage* p_store);
+void freeStorageContents(Storage* p_store);
+
+void initStorage(Storage* p_store, int capacity);
+
+Storage deepCopyStorage(Storage store);
+
 
 
 #endif

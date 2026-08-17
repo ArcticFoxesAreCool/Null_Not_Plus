@@ -3,7 +3,7 @@
 
 #include "DatatypeEnum.h"
 
-typedef struct {
+typedef struct UserFuncObj {
     Datatype_e type;
     long declaration_tell;
     int num_args;

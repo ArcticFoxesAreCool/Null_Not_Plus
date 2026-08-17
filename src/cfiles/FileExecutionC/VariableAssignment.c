@@ -39,3 +39,22 @@ void storeUserFuncDeclaration(Storage* p_store, long decl_tell, int line_number)
 }
 
 
+void storeClassDeclaration(Storage* p_store, long decl_tell, int line_number){
+    extern Reader nian;
+    extern TokenTyper tok_types;
+
+    assert(p_store);
+    assert(decl_tell >= 0);
+    assert(nian.charv && nian.sz >= 1 && nian.tok_ind_capacity >= 2 && nian.tok_ind_len >= 2);
+    assert(tok_types.size >= 2 && tok_types.types);
+
+    assert(tok_types.types[0] == VARIABLE && tok_types.types[1] == OPERATOR);
+    for (int i = 2; i < nian.tok_ind_len; i++) {assert(tok_types.types[i] == VARIABLE);}
+
+    ClassObj* user_class = constructClassObj(decl_tell, nian.tok_ind_len - 2, line_number);
+    NnpStr class_name = makeNnpStr(nian.charv);
+
+    appendStorage(p_store, user_class, &class_name);
+    freeNnpStr(&class_name);
+    freeObj(user_class);
+}

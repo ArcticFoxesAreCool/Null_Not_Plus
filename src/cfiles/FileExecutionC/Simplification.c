@@ -10,6 +10,28 @@ extern Storage big_storage;
 
 void subCondenseObjsOperators(Storage* scope, ObjArray* p_temp_stack, Datatype_e* datatype_arr, int start_index, int stop_index);
 
+void classConstructorCalled(Storage* scope, ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
+    assert(p_obj_arr && p_curr_tok_index);
+    Datatype_e dat = *(Datatype_e*)(p_obj_arr->objs[p_obj_arr->length - 1]);
+    if (dat != CLASS_OBJ){logMessage(FILE_PARSING, "Class Constructor called with a non-ClassObj\n"); exit(1);}
+
+    extern Reader nian; extern TokenTyper tok_types;
+    assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 1 && nian.token_indexes && nian.tok_ind_len > *p_curr_tok_index);
+    assert(tok_types.size > 1 && tok_types.types);
+
+    ClassObj* class_ref = p_obj_arr->objs[p_obj_arr->length - 1];
+    int start_index = *p_curr_tok_index;
+
+    int final_index = getFunctionFinalParameterIndex(class_ref->constructor->num_args, start_index, stop_index, scope);
+
+    if (final_index != -1){
+        subCondenseObjsOperators(scope, p_obj_arr, NULL, start_index + 1, final_index);
+        *p_curr_tok_index = final_index;
+    }
+
+    resolveClassConstructor(p_obj_arr, class_ref->constructor->num_args);
+
+}
 
 // functionCalled(p_temp_stack, &i, stop_index);
 void functionCalled(Storage* scope, ObjArray* p_obj_arr, int* p_curr_tok_index, int stop_index){
@@ -152,12 +174,37 @@ void subCondenseObjsOperators(Storage* scope, ObjArray* p_temp_stack, Datatype_e
             if (strncmp(nian.charv + nian.token_indexes[i], "<-", 3) == 0){
 
                 functionCalled(scope, p_temp_stack, &i, stop_index);
+
+            } else if (strncmp(nian.charv + nian.token_indexes[i], "~<-", 4) == 0) {
                 
+                classConstructorCalled(scope, p_temp_stack, &i, stop_index);
+
             } else if (strncmp(nian.charv + nian.token_indexes[i], "->", 3) == 0){
-                assert(nian.tok_ind_len > i + 1 && tok_types.types[i+1] == VARIABLE);
-                NnpStr var_identifier = makeNnpStr(nian.charv + nian.token_indexes[i+1]);
-                assignVar(scope, p_temp_stack, &var_identifier);
-                freeNnpStr(&var_identifier);
+                assert(nian.tok_ind_len > i + 1 && (tok_types.types[i+1] == VARIABLE || (tok_types.types[i+1] == KEYWORD && strncmp(nian.charv + nian.token_indexes[i+1], "me", 3) == 0)));
+            #pragma region ME_KEYWORD_HANDLING
+                if (tok_types.types[i+1] == KEYWORD){
+                    extern InstanceObj* me_obj;
+                    if (!me_obj){
+                        logMessage(FILE_PARSING, "'me' keyword used in incorrect location");
+                        exit(1);
+                    }
+                    // val  ->  me  .   a
+                    // -1   i   +1  +2  +3
+                    assert(nian.tok_ind_len - 1 >= i + 3);
+                    assert(tok_types.types[i + 2] == OPERATOR && (strncmp(nian.charv + nian.token_indexes[i+2], ".", 2) == 0) && tok_types.types[i + 3] == VARIABLE);
+                    NnpStr member_var_identifier = makeNnpStr(nian.charv + nian.token_indexes[i+3]);
+                    assignVar(&(me_obj->vars_methods), p_temp_stack, &member_var_identifier);
+                    object_p member_var = getFromStorage(&(me_obj->vars_methods), &member_var_identifier);
+                    assert(member_var);
+                    freeNnpStr(&member_var_identifier);
+                    appendInObjArray(p_temp_stack, member_var);
+                    i += 3;
+            #pragma endregion
+                } else {
+                    NnpStr var_identifier = makeNnpStr(nian.charv + nian.token_indexes[i+1]);
+                    assignVar(scope, p_temp_stack, &var_identifier);
+                    freeNnpStr(&var_identifier);
+                }
             } else if (i + 1 < nian.tok_ind_len && nian.tok_ind_len >= 3 && (tok_types.types[i+1] == VALUE || tok_types.types[i+1] == VARIABLE)){
                 i++;
 
@@ -184,6 +231,19 @@ void subCondenseObjsOperators(Storage* scope, ObjArray* p_temp_stack, Datatype_e
                     operationResolution(p_temp_stack, i);
                     i = list_closed_at;
                     continue;
+
+                } else if (tok_types.types[i] == VARIABLE && strncmp(".", nian.charv + nian.token_indexes[i-1], 2) == 0){
+                    // if ((Datatype*) p_temp_stack->)
+                    object_p ref = p_temp_stack->objs[p_temp_stack->length - 1];
+                    if (*(Datatype_e*)ref != INSTANCE_OBJ){
+                        logMessage(FILE_PARSING, ". operator used incorrectly\n");
+                        exit(1);
+                    }
+                    InstanceObj* instance = ref;
+                    addValVarToTempStack(&(instance->vars_methods), p_temp_stack, datatype_arr, i);
+
+                    popInObjArray(p_temp_stack, p_temp_stack->length - 2);
+                    continue;
                 }
 
 
@@ -203,6 +263,13 @@ void subCondenseObjsOperators(Storage* scope, ObjArray* p_temp_stack, Datatype_e
                 puts("Invalid syntax");
                 exit(1);
             }
+        } else if (tok_types.types[i] == KEYWORD && strncmp(nian.charv + nian.token_indexes[i], "me", 3) == 0){
+            extern InstanceObj* me_obj;
+            if (!me_obj){
+                logMessage(FILE_PARSING, "'me' keyword used in incorrect location\n");
+                exit(1);
+            }
+            appendInObjArray(p_temp_stack, me_obj);
         }
         
     }
@@ -312,6 +379,14 @@ static void addValVarToTempStack(Storage* scope, ObjArray* p_temp_stack, Datatyp
         freeNnpStr(&tmp_str);
 
         // printf("DEBUG 2: %d\n", index);
+    } else if (tok_types.types[index] == KEYWORD && strncmp(nian.charv + nian.token_indexes[index], "me", 3) == 0){
+        extern InstanceObj* me_obj;
+        if (!me_obj){
+            logMessage(FILE_PARSING, "'me' keyword used in incorrect location");
+            exit(1);
+        }
+        appendInObjArray(p_temp_stack, me_obj);
+
     } else {
         logMessage(FILE_PARSING, "Misread addValVarToTempStack\n");
         puts("Misread addValVarToTempStack");
@@ -764,6 +839,12 @@ object_p constructFromValue(int tok_index){
             return constructDatatypeObj(NUM_OBJ);
         } else if (strncmp("StrObj", tok, 7) == 0){
             return constructDatatypeObj(STR_OBJ);
+        } else if (strncmp("ClassObj", tok, 9) == 0){
+            return constructDatatypeObj(CLASS_OBJ);
+        } else if (strncmp("InstanceObj", tok, 12) == 0){
+            return constructDatatypeObj(INSTANCE_OBJ);
+        } else if (strncmp("FuncObj", tok, 8) == 0){
+            return constructDatatypeObj(USER_FUNC_OBJ);
         }
         logMessage(FILE_PARSING, "Attempt to make datatype of invalid value\n");
         exit(1);

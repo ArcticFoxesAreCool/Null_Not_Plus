@@ -131,6 +131,12 @@ static bool isDattype(const char* token){
         return true;
     } else if (strncmp("StrObj", token, 7) == 0){
         return true;
+    } else if (strncmp("ClassObj", token, 9) == 0){
+        return true;
+    } else if (strncmp("InstanceObj", token, 12) == 0){
+        return true;
+    } else if (strncmp("FuncObj", token, 8) == 0){
+        return true;
     }
 
     return false;

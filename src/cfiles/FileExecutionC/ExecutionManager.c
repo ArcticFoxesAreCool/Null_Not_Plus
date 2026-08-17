@@ -71,7 +71,7 @@ void executeCode(const char* nnp_path){
     closeFile();
     freeTok_types();
     freeReader();
-    deepFreeStorage(&big_storage);
+    freeStorageContents(&big_storage);
 
     logAllocations(MEMORY_STATE);
 }
@@ -83,38 +83,6 @@ void executeCode(const char* nnp_path){
 
 
 
-
-
-void initStorage(Storage* p_store, int capacity){
-    assert(capacity > 0 && p_store->identifiers == NULL && p_store->capacity == 0 && p_store->length == 0 && p_store->objs == NULL);
-    p_store->objs = myMalloc(sizeof(object_p) * capacity);
-    p_store->identifiers = myMalloc(sizeof(NnpStr) * capacity);
-    assert(p_store->objs && p_store->identifiers);
-
-    p_store->capacity = capacity;
-    p_store->length = 0;
-
-    loadPrebuiltsIntoStorage(p_store);
-}
-
-
-
-
-
-void deepFreeStorage(Storage* p_store){
-    assert(p_store->objs && p_store->identifiers && p_store->capacity > 0);
-
-    for(uint i = 0; i < p_store->length; i++){
-        freeObj(p_store->objs[i]);
-        freeNnpStr(  &(p_store->identifiers[i])  );
-    }
-
-    myFree(p_store->objs);
-    myFree(p_store->identifiers);
-
-    p_store->capacity = 0;
-    p_store->length = 0;
-}
 
 
 void freeNonVarsInObjArr(ObjArray* p_obj_arr, const Storage* p_store){
@@ -164,8 +132,6 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
         return LINE_BLANK;
     } else if (nian.tok_ind_len == 1 && strncmp(nian.charv + nian.token_indexes[0], "no", 3) == 0) {
         return LINE_NO_SCOPE;
-    } else if (nian.tok_ind_len >= 2 && strncmp(nian.charv + nian.token_indexes[1], "~<-", 4) == 0){
-        return LINE_CLASS_DECLARATION;
     }
 
     
@@ -185,6 +151,13 @@ enum TypeOfLine getCurrentLineType(const Storage* p_store){
             if (getFromStorage(p_store, &temp_str) == NULL){
                 freeNnpStr(&temp_str);
                 return LINE_FUNC_DECLARATION;
+            }
+            freeNnpStr(&temp_str);
+        } else if (tok_types.types[0] == VARIABLE && strncmp(nian.charv + nian.token_indexes[1], "~<-", 4) == 0){
+            NnpStr temp_str = makeNnpStr(nian.charv + nian.token_indexes[0]);
+            if (getFromStorage(p_store, &temp_str) == NULL){
+                freeNnpStr(&temp_str);
+                return LINE_CLASS_DECLARATION;
             }
             freeNnpStr(&temp_str);
         }
@@ -250,18 +223,25 @@ static bool checkShouldResumeExecute(enum TypeOfLine line_type){
         if (loopLineIsBreakContinue() != LOOP_START) return false;    
     
     case LINE_CONDITIONAL:
-    case LINE_CLASS_DECLARATION:
         no_scope++;
         break;
     case LINE_FUNC_DECLARATION: {
         for (int i = 0; i < block_tracker.length; i++){
-            if (block_tracker.data[i].state == BLOCK_FUNCTION){
+            if (block_tracker.data[i].state == BLOCK_CLASS || block_tracker.data[i].state == BLOCK_FUNCTION){
                 return false;
             }
         }
         no_scope++;
         break;
     }
+    case LINE_CLASS_DECLARATION:
+        for (int i = 0; i < block_tracker.length; i++){
+            if (block_tracker.data[i].state == BLOCK_CLASS || block_tracker.data[i].state == BLOCK_FUNCTION){
+                return false;
+            }
+        }
+        no_scope += 2;
+        break;
     default:
         break;
     }
@@ -475,13 +455,16 @@ void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage*
         #pragma endregion
     case LINE_FUNC_DECLARATION:
         no_scope++;
-        storeUserFuncDeclaration(p_store, tell, line_number - 1);
+        storeUserFuncDeclaration(p_store, tell, line_number);
         appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number});
         skip_execution = true;
         break;
     case LINE_CLASS_DECLARATION:
-        puts("Class Declaration unimplemented. Try again in a few weeks");
-        exit(1);
+        no_scope += 2;
+        storeClassDeclaration(p_store, tell, line_number);
+        appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_CLASS, .line_count = line_number});
+        appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number});
+        skip_execution = true;
         break;
     case LINE_NO_SCOPE:
         if (can_decrement_no) no_scope--;
@@ -492,6 +475,9 @@ void executeTheLine(ObjArray* p_line_memory, enum TypeOfLine line_type, Storage*
         }
         popBlocktracker(&block_tracker);
 
+        if (block_tracker.data[block_tracker.length - 1].state == BLOCK_CLASS){
+            skip_execution = true;
+        }
       
 
         // for (int i = 0; i < block_tracker.length; i++)

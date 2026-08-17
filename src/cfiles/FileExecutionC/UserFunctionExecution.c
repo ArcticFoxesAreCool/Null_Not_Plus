@@ -87,8 +87,6 @@ void popAndFSeekCallStack(){
 }
 
 
-static void setParameters(const ObjArray* p_obj_arr, Storage* p_store, int num_args);
-
 
 void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     extern FILE* nnp_code;
@@ -101,7 +99,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     assert(num_args >= 0);
 
     appendCallStack(tell, line_number);
-    appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number - 1});
+    appendBlockTracker(&block_tracker, (struct BlockData){.state = BLOCK_FUNCTION, .line_count = line_number});
 
     
     UserFuncObj* func_ref = p_obj_arr->objs[p_obj_arr->length - num_args - 1];
@@ -165,9 +163,8 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     }
 
     myFree(line_memory.objs);
-    /*
-    BECAUSE THERE ARE NO RETURNS #todo, JUST CLEAR ARGS and USERFUNC_OBJ
-    */
+    
+    
     int index_offset = ret ? -2 : -1;
     for (int i = 0; i < num_args + 1; i++){
         // printf("len: %u\n", p_obj_arr->length); fflush(stdout);
@@ -181,7 +178,7 @@ void resolveUserFunc(ObjArray* p_obj_arr, int num_args){
     getTok_types();
 }
 
-static void setParameters(const ObjArray* p_obj_arr, Storage* p_store, int num_args){
+void setParameters(const ObjArray* p_obj_arr, Storage* p_store, int num_args){
     extern Reader nian;
     assert(nian.charv && nian.sz > 0 && nian.tok_ind_capacity > 0 && nian.tok_ind_len >= 2);
 

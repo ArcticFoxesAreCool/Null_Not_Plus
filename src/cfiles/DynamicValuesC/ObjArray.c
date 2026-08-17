@@ -46,6 +46,19 @@ object_p copyObj(const object_p this_obj){
             assert(ret);
             memcpy(ret, this_obj, sizeof(UserFuncObj));
             return ret;
+        case CLASS_OBJ:
+            ret = myMalloc(sizeof(ClassObj));
+            assert(ret);
+            ((ClassObj*)ret)->type = CLASS_OBJ;
+            ((ClassObj*)ret)->constructor = copyObj( ((ClassObj*)this_obj)->constructor );
+            return ret;
+        case INSTANCE_OBJ:
+            ret = myMalloc(sizeof(InstanceObj));
+            assert(ret);
+            ((InstanceObj*)ret)->type = INSTANCE_OBJ;
+            ((InstanceObj*)ret)->vars_methods = deepCopyStorage( ((InstanceObj*)this_obj)->vars_methods );
+            ((InstanceObj*)ret)->_constructor_tell = ((InstanceObj*)this_obj)->_constructor_tell;
+            return ret;
         default:
             puts("copy object datatype not detected");
             exit(1);
@@ -90,7 +103,14 @@ void freeObj(object_p this_obj){
             myFree(((ListObj*)this_obj)->values.objs);
             myFree(this_obj);
             break;
-
+        case CLASS_OBJ:
+            myFree(((ClassObj*)this_obj)->constructor);
+            myFree(this_obj);
+            break;
+        case INSTANCE_OBJ:            
+            freeStorageContents(&(((InstanceObj*)this_obj)->vars_methods));
+            myFree(this_obj);
+            break;
         default:
           
 
@@ -137,6 +157,7 @@ char* objValtoDynAllocStr(object_p obj){
                 sprintf(dst, "StrObj");
                 break;
             case COMP_FUNC_OBJ:
+            case USER_FUNC_OBJ:
                 sprintf(dst, "FuncObj");
                 break;
             case CLASS_OBJ:
@@ -198,6 +219,78 @@ char* objValtoDynAllocStr(object_p obj){
         dst = myMalloc(64); assert(dst);
         sprintf(dst, "UserFuncObj(Argc = %d)", ((UserFuncObj*)obj)->num_args);
         break;
+    case CLASS_OBJ:
+        dst = myMalloc(128); assert(dst);
+        sprintf(dst, "ClassObj( Argc = %d, line = %d )", 
+            ((ClassObj*)obj)->constructor->num_args, ((ClassObj*)obj)->constructor->line_number);
+        break;
+    case INSTANCE_OBJ: {
+        dst = myMalloc(64); assert(dst);
+        size_t dst_size = 64;
+
+        size_t l = 0;
+
+        sprintf(dst, "InstanceObj( ");
+        l = strlen(dst);
+
+        InstanceObj* i_obj = obj;
+        for (uint i = 0; i < i_obj->vars_methods.length; i++){
+            if (i_obj->vars_methods.identifiers[i].union_mode == NNPSTR_UNIONMODE_BUFFER){
+                l += strlen(i_obj->vars_methods.identifiers[i].string.buffer);
+                if (l + 1 >= dst_size) {
+                    dst_size = 2 * l + 1;
+                    dst = realloc(dst, dst_size); 
+                    assert(dst);
+                }
+                strcat(dst, i_obj->vars_methods.identifiers[i].string.buffer);
+            } else {
+                l += strlen(i_obj->vars_methods.identifiers[i].string.dyn_str);
+                if (l + 1 >= dst_size) {
+                    dst_size = 2 * l + 1;
+                    dst = realloc(dst, dst_size); 
+                    assert(dst);
+                }
+                strcat(dst, i_obj->vars_methods.identifiers[i].string.dyn_str);
+            }
+            l += 3;
+            if (l + 3 >= dst_size) {
+                dst_size = 2 * l + 1;
+                dst = realloc(dst, dst_size); 
+                assert(dst);
+            }
+            strcat(dst, " = "); 
+
+            char* temp = objValtoDynAllocStr(i_obj->vars_methods.objs[i]);
+            l += strlen(temp);
+            if (l + 1 >= dst_size) {
+                dst_size = 2 * l + 1;
+                dst = realloc(dst, dst_size); 
+                assert(dst);
+            }
+            strcat(dst, temp);
+            myFree(temp);
+
+            if (i + 1 < i_obj->vars_methods.length){
+                l += 3;
+                if (l + 3 >= dst_size) {
+                    dst_size = 2 * l + 1;
+                    dst = realloc(dst, dst_size); 
+                    assert(dst);
+                }
+                strcat(dst, ", ");
+            }
+        }
+
+        l += 2;
+        if (l + 2 >= dst_size) {
+            dst_size = 2 * l + 1;
+            dst = realloc(dst, dst_size); 
+            assert(dst);
+        }
+        strcat(dst, " )");
+
+        break;
+    }
     default:
         // printf("dat: %d\n", dat);
         puts("ObjValtoStr obj datatype not found");
@@ -298,9 +391,11 @@ bool objsEqual(const object_p obj1, const object_p obj2){
     case USER_FUNC_OBJ:
         return ((UserFuncObj*)obj1)->declaration_tell   ==   ((UserFuncObj*)obj2)->declaration_tell;
 
-    case INSTANCE_OBJ:
     case CLASS_OBJ:
-        printf("CLASSES not implemented yet!\n");
+        if (*(Datatype_e*)obj2 != CLASS_OBJ) return false;
+        return objsEqual(((ClassObj*)obj1)->constructor, ((ClassObj*)obj2)->constructor);
+    case INSTANCE_OBJ:
+        printf("INSTANCES not implemented yet!\n");
         exit(1);
     case NAO:
         printf("objsEqual should never be called on a NAO\n");
